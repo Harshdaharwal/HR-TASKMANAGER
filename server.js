@@ -52,7 +52,19 @@ const SHEET_HEADERS = {
   Biometrics:    ['id','employeeId','employeeName','employeeDepartment','credentialId','faceDescriptor','type','registeredAt'],
 };
 
+// ── Quota guard: cache which sheets are already set up (reset on restart) ──
+const _sheetsReady = new Set();
+
+// ── Read cache: avoid hammering Sheets API on frequent GETs ──
+const _readCache = new Map(); // sheetName → { data, ts }
+const READ_CACHE_TTL = 15000; // 15 seconds
+
+function invalidateCache(sheetName) {
+  _readCache.delete(sheetName);
+}
+
 async function ensureSheet(sheets, sheetName, dynamicHeaders) {
+  if (_sheetsReady.has(sheetName)) return; // already verified this session
   try {
     const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
     const exists = res.data.sheets.some(s => s.properties.title === sheetName);
@@ -62,7 +74,6 @@ async function ensureSheet(sheets, sheetName, dynamicHeaders) {
         requestBody: { requests: [{ addSheet: { properties: { title: sheetName } } }] }
       });
     }
-    // Use known headers from constant, or dynamic headers passed in as fallback
     const headerRow = SHEET_HEADERS[sheetName] || dynamicHeaders;
     if (headerRow) {
       const headerRes = await sheets.spreadsheets.values.get({
@@ -78,13 +89,19 @@ async function ensureSheet(sheets, sheetName, dynamicHeaders) {
         });
       }
     }
+    _sheetsReady.add(sheetName); // mark as ready so future calls skip this
   } catch (err) {
     console.error(`ensureSheet(${sheetName}) error:`, err.message);
-    throw err; // re-throw so callers know the sheet isn't ready
+    throw err;
   }
 }
 
 async function readSheet(sheetName) {
+  // Serve from cache if fresh
+  const cached = _readCache.get(sheetName);
+  if (cached && (Date.now() - cached.ts) < READ_CACHE_TTL) {
+    return cached.data;
+  }
   const sheets = await getSheets();
   await ensureSheet(sheets, sheetName);
   const res = await sheets.spreadsheets.values.get({
@@ -92,13 +109,16 @@ async function readSheet(sheetName) {
     range: `${sheetName}!A:ZZ`
   });
   const rows = res.data.values || [];
-  if (rows.length < 2) return [];
-  const headers = rows[0];
-  return rows.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i] || ''; });
-    return obj;
-  });
+  const data = rows.length < 2 ? [] : (() => {
+    const headers = rows[0];
+    return rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    });
+  })();
+  _readCache.set(sheetName, { data, ts: Date.now() });
+  return data;
 }
 
 async function appendRow(sheetName, data) {
@@ -118,11 +138,13 @@ async function appendRow(sheetName, data) {
     valueInputOption: 'RAW',
     requestBody: { values: [row] }
   });
+  invalidateCache(sheetName); // so next GET returns fresh data
   return data;
 }
 
 async function updateRow(sheetName, id, data) {
   const sheets = await getSheets();
+  // Read via cache to save quota; then find position in the raw sheet for the update range
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: `${sheetName}!A:ZZ`
@@ -143,11 +165,13 @@ async function updateRow(sheetName, id, data) {
     valueInputOption: 'RAW',
     requestBody: { values: [updatedRow] }
   });
+  invalidateCache(sheetName);
   return data;
 }
 
 async function deleteRow(sheetName, id) {
   const sheets = await getSheets();
+  // Use A:A only (just the id column) to minimise bytes transferred
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId: SPREADSHEET_ID,
     range: `${sheetName}!A:A`
@@ -172,6 +196,7 @@ async function deleteRow(sheetName, id) {
       }]
     }
   });
+  invalidateCache(sheetName);
   return true;
 }
 
