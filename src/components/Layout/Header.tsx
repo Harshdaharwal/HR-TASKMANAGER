@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, Bell, Search, ChevronDown, LogOut, User, Settings, X } from 'lucide-react';
+import { Menu, Bell, Search, ChevronDown, LogOut, User, Settings, X, Sun, Moon } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useLocation } from 'react-router';
 
@@ -38,7 +38,7 @@ const NOTIFS: Notif[] = [
 const NOTIF_COLORS = { info:'#3b82f6', warning:'#f59e0b', success:'#10b981' };
 
 export default function Header() {
-  const { currentUser, setSidebarOpen, sidebarOpen } = useApp();
+  const { currentUser, setSidebarOpen, sidebarOpen, darkMode, toggleDarkMode } = useApp();
   const [showProfile, setShowProfile]   = useState(false);
   const [showNotifs,  setShowNotifs]    = useState(false);
   const [showSearch,  setShowSearch]    = useState(false);
@@ -110,6 +110,18 @@ export default function Header() {
           <div style={{ padding:'6px 12px', borderRadius:'8px', background:'#f8fafc', border:'1px solid #e2e8f0', fontSize:'11.5px', color:'#475569', whiteSpace:'nowrap' }}>
             {new Date().toLocaleDateString('en-IN',{ weekday:'short', day:'numeric', month:'short', year:'numeric' })}
           </div>
+
+          {/* Dark mode toggle */}
+          <button onClick={toggleDarkMode} title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'} style={{
+            padding:'8px', borderRadius:'10px',
+            background: darkMode ? 'rgba(99,130,246,0.12)' : '#f8fafc',
+            border:`1px solid ${darkMode ? 'rgba(99,130,246,0.3)' : '#e2e8f0'}`,
+            cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+            color: darkMode ? '#93c5fd' : '#475569',
+            transition:'all 0.2s',
+          }}>
+            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
 
           {/* Notifications */}
           <div style={{ position:'relative' }}>
@@ -202,7 +214,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right: Search + Bell */}
+        {/* Right: Search + Dark toggle + Bell */}
         <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
           <button onClick={() => setShowSearch(true)} style={{
             width:'38px', height:'38px', borderRadius:'12px',
@@ -211,6 +223,17 @@ export default function Header() {
             cursor:'pointer', color:'#475569',
           }}>
             <Search size={17} />
+          </button>
+
+          <button onClick={toggleDarkMode} title={darkMode ? 'Light Mode' : 'Dark Mode'} style={{
+            width:'38px', height:'38px', borderRadius:'12px',
+            background: darkMode ? 'rgba(99,130,246,0.15)' : '#f1f5f9',
+            border: `1px solid ${darkMode ? 'rgba(99,130,246,0.35)' : '#e2e8f0'}`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            cursor:'pointer', color: darkMode ? '#93c5fd' : '#475569',
+            transition:'all 0.2s',
+          }}>
+            {darkMode ? <Sun size={17} /> : <Moon size={17} />}
           </button>
 
           <button onClick={() => setShowNotifs(!showNotifs)} style={{

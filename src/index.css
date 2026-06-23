@@ -888,11 +888,8 @@ select.input option { background: #fff; color: #0f172a; }
   .tab-bar::-webkit-scrollbar { display: none; }
 }
 
-/* ── ULTRA-PREMIUM DARK MODE ── */
-@media (prefers-color-scheme: dark) {
-
-  /* ── Design tokens ── */
-  :root {
+/* ── ULTRA-PREMIUM DARK MODE — triggered by html.dark class ── */
+html.dark {
     --bg-deep:    #04071a;
     --bg-base:    #060b1e;
     --bg-surface: #0c1228;
@@ -903,7 +900,6 @@ select.input option { background: #fff; color: #0f172a; }
     --text-muted:     #4d6080;
     --card-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 8px 32px rgba(0,0,0,0.35);
     --card-shadow-hover: 0 0 0 1px rgba(99,130,246,0.25), 0 16px 48px rgba(37,99,235,0.2);
-  }
 
   /* ── Base ── */
   body { background: #04071a; color: #e8eeff; }

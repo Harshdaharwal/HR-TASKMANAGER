@@ -17,6 +17,8 @@ interface AppContextType {
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   apiOnline: boolean;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -30,7 +32,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiOnline, setApiOnline] = useState(false);
 
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved !== null ? saved === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
   const currentUser = { name: 'Harsh Daharwal', role: 'HR Manager', avatar: 'HD', email: 'harsh@company.com' };
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode);
+    localStorage.setItem('darkMode', String(darkMode));
+  }, [darkMode]);
+
+  const toggleDarkMode = () => setDarkMode(d => !d);
 
   // Try to load from API on mount
   useEffect(() => {
@@ -60,7 +74,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       attendanceRecords, setAttendanceRecords,
       payrollRecords, setPayrollRecords,
       announcements, setAnnouncements,
-      currentUser, sidebarOpen, setSidebarOpen, apiOnline,
+      currentUser, sidebarOpen, setSidebarOpen, apiOnline, darkMode, toggleDarkMode,
     }}>
       {children}
     </AppContext.Provider>
