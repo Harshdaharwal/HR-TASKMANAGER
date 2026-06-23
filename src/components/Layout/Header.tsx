@@ -38,7 +38,7 @@ const NOTIFS: Notif[] = [
 const NOTIF_COLORS = { info:'#3b82f6', warning:'#f59e0b', success:'#10b981' };
 
 export default function Header() {
-  const { currentUser, setSidebarOpen, sidebarOpen, darkMode, toggleDarkMode } = useApp();
+  const { currentUser, setSidebarOpen, sidebarOpen, darkMode, toggleDarkMode, apiOnline } = useApp();
   const [showProfile, setShowProfile]   = useState(false);
   const [showNotifs,  setShowNotifs]    = useState(false);
   const [showSearch,  setShowSearch]    = useState(false);
@@ -109,6 +109,14 @@ export default function Header() {
         <div style={{ display:'flex', alignItems:'center', gap:'8px', marginLeft:'auto', flexShrink:0 }}>
           <div style={{ padding:'6px 12px', borderRadius:'8px', background:'#f8fafc', border:'1px solid #e2e8f0', fontSize:'11.5px', color:'#475569', whiteSpace:'nowrap' }}>
             {new Date().toLocaleDateString('en-IN',{ weekday:'short', day:'numeric', month:'short', year:'numeric' })}
+          </div>
+
+          {/* Google Sheets connectivity indicator */}
+          <div title={apiOnline ? 'Google Sheets connected — data saves to cloud' : 'Backend offline — run: npm run server'} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 11px', borderRadius:'8px', background: apiOnline ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border:`1px solid ${apiOnline ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, cursor:'default', flexShrink:0 }}>
+            <div style={{ width:7, height:7, borderRadius:'50%', background: apiOnline ? '#10b981' : '#ef4444', boxShadow: apiOnline ? '0 0 6px #10b981' : '0 0 6px #ef4444' }} />
+            <span style={{ fontSize:11, fontWeight:700, color: apiOnline ? '#059669' : '#dc2626', letterSpacing:'0.02em' }}>
+              {apiOnline ? 'Sheets Connected' : 'Offline'}
+            </span>
           </div>
 
           {/* Dark mode toggle */}

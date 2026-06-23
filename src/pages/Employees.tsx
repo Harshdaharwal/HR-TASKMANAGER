@@ -43,23 +43,26 @@ function formatINR(n: number): string {
 
 /* ─── toast ───────────────────────────────────────────── */
 function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
+  const isSuccess = msg.startsWith('✅');
+  const isError   = msg.startsWith('❌');
   useEffect(() => {
-    const t = setTimeout(onClose, 4000);
+    const t = setTimeout(onClose, isError ? 10000 : 4000);
     return () => clearTimeout(t);
-  }, [onClose]);
+  }, [onClose, isError]);
   return (
     <div
       className="fade-up"
       style={{
         position: 'fixed', bottom: 24, right: 24, zIndex: 9999,
-        background: 'rgba(239,68,68,0.95)', backdropFilter: 'blur(10px)',
-        color: '#fff', padding: '12px 20px', borderRadius: 12,
+        background: isSuccess ? 'rgba(16,185,129,0.95)' : 'rgba(239,68,68,0.95)',
+        backdropFilter: 'blur(10px)',
+        color: '#fff', padding: '14px 20px', borderRadius: 12,
         boxShadow: '0 8px 32px rgba(0,0,0,0.3)', display: 'flex',
-        alignItems: 'center', gap: 10, maxWidth: 360, fontSize: 14,
+        alignItems: 'flex-start', gap: 10, maxWidth: 420, fontSize: 13, lineHeight: 1.5,
       }}
     >
-      <span style={{ flex: 1 }}>{msg}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 2 }}>
+      <span style={{ flex: 1, wordBreak: 'break-word' }}>{msg}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '2px 0', flexShrink: 0 }}>
         <X size={16} />
       </button>
     </div>
@@ -473,7 +476,7 @@ function DeleteModal({ name, onClose, onConfirm }: { name: string; onClose: () =
 
 /* ─── main page ───────────────────────────────────────── */
 export default function Employees() {
-  const { employees, setEmployees } = useApp();
+  const { employees, setEmployees, apiOnline } = useApp();
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState<string>('All');
@@ -540,10 +543,12 @@ export default function Employees() {
           employeeId: `EMP${String(Date.now()).slice(-4)}`,
         });
         setEmployees(prev => [created || { ...data, id: String(Date.now()), employeeId: `EMP${String(Date.now()).slice(-4)}`, avatar: initials(data.name) }, ...prev]);
+        setToast('✅ Employee saved to Google Sheets!');
       }
-    } catch {
-      setToast('Failed to save employee. Changes saved locally.');
-      /* apply locally anyway */
+    } catch (err: any) {
+      const msg: string = err?.message || 'Unknown error';
+      setToast(`❌ Google Sheets save failed: ${msg}`);
+      /* apply locally so UI is not broken */
       if (editEmp) {
         setEmployees(prev => prev.map(e => e.id === editEmp.id ? { ...editEmp, ...data } : e));
       } else {
@@ -563,8 +568,8 @@ export default function Employees() {
     if (!deleteEmp) return;
     try {
       await api.delete(`/employees/${deleteEmp.id}`);
-    } catch {
-      setToast('API error — employee removed locally.');
+    } catch (err: any) {
+      setToast(`❌ Delete failed: ${err?.message || 'Unknown error'}`);
     }
     setEmployees(prev => prev.filter(e => e.id !== deleteEmp.id));
     setDeleteEmp(null);
@@ -582,6 +587,18 @@ export default function Employees() {
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+      {/* ── API status banner ── */}
+      {!apiOnline && (
+        <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>⚠️</span>
+          <div>
+            <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Backend server not running — data will NOT save to Google Sheets</p>
+            <p style={{ color: '#ef4444', fontSize: 12, margin: '3px 0 0' }}>Run <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: 4 }}>npm run server</code> in a terminal, then refresh this page</p>
+          </div>
+        </div>
+      )}
+
       {/* ── header ── */}
       <div className="section-header">
         <div>

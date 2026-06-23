@@ -1,13 +1,18 @@
 const BASE = 'http://localhost:3001/api';
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new Error('Server not reachable — is "npm run server" running on port 3001?');
+  }
   const json = await res.json();
-  if (!json.success) throw new Error(json.error || 'API error');
+  if (!json.success) throw new Error(json.error || `HTTP ${res.status}`);
   return json.data;
 }
 
