@@ -16,14 +16,6 @@ interface InventoryItem {
   lastUpdated: string;
 }
 
-const MOCK: InventoryItem[] = [
-  { id: '1', name: 'A4 Paper Ream (500 sheets)', sku: 'OFF-001', category: 'Office Supplies', quantity: 120, minStock: 20, unitPrice: 280, supplier: 'Staples India', location: 'Store A', status: 'In Stock', lastUpdated: '2026-06-18' },
-  { id: '2', name: 'HP Toner Cartridge 85A', sku: 'PRT-002', category: 'Printing', quantity: 8, minStock: 10, unitPrice: 1850, supplier: 'HP Authorised', location: 'Store B', status: 'Low Stock', lastUpdated: '2026-06-15' },
-  { id: '3', name: 'Laptop Stand Adjustable', sku: 'HW-003', category: 'Hardware', quantity: 0, minStock: 5, unitPrice: 1200, supplier: 'Amazon Business', location: 'Store A', status: 'Out of Stock', lastUpdated: '2026-06-10' },
-  { id: '4', name: 'Whiteboard Markers (Pack 10)', sku: 'OFF-004', category: 'Office Supplies', quantity: 45, minStock: 10, unitPrice: 220, supplier: 'Staples India', location: 'Store A', status: 'In Stock', lastUpdated: '2026-06-20' },
-  { id: '5', name: 'USB-C Hub 7-in-1', sku: 'HW-005', category: 'Hardware', quantity: 22, minStock: 5, unitPrice: 1599, supplier: 'Anker India', location: 'Store B', status: 'In Stock', lastUpdated: '2026-06-17' },
-  { id: '6', name: 'Hand Sanitizer 500ml', sku: 'SAN-006', category: 'Hygiene', quantity: 6, minStock: 15, unitPrice: 180, supplier: 'Dettol B2B', location: 'Store A', status: 'Low Stock', lastUpdated: '2026-06-19' },
-];
 
 const categoryColors: Record<string, string> = {
   'Office Supplies': 'badge-blue', Printing: 'badge-purple', Hardware: 'badge-cyan',
@@ -35,7 +27,7 @@ const statusBadge: Record<string, string> = {
 };
 
 export default function Inventory() {
-  const [items, setItems] = useState<InventoryItem[]>(MOCK);
+  const [items, setItems] = useState<InventoryItem[]>([]);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'All' | 'Low Stock' | 'Out of Stock'>('All');
   const [showModal, setShowModal] = useState(false);
@@ -44,7 +36,7 @@ export default function Inventory() {
   const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<InventoryItem[]>('/inventory').then(d => { if (d?.length) setItems(d); }).catch(() => {});
+    api.get<InventoryItem[]>('/inventory').then(d => { setItems(d ?? []); }).catch(() => {});
   }, []);
 
   const filtered = items.filter(i => {

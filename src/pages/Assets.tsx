@@ -43,20 +43,6 @@ const STATUS_COLORS: Record<string, string> = {
   'Under Maintenance': 'badge-yellow', Retired: 'badge-gray',
 };
 
-const MOCK_ASSETS: Asset[] = [
-  { id: '1', assetId: 'AST-001', name: 'MacBook Pro 14"', brand: 'Apple', type: 'Laptop', serialNo: 'C02XJ2JHG5L4', assignedTo: 'EMP001', assignedToName: 'Rahul Sharma', assignDate: '2025-03-15', condition: 'Excellent', status: 'Assigned', purchaseDate: '2025-03-01', price: 185000, warranty: '2027-03-01' },
-  { id: '2', assetId: 'AST-002', name: 'iPhone 15 Pro', brand: 'Apple', type: 'Mobile', serialNo: 'F17LK9M2X', assignedTo: 'EMP002', assignedToName: 'Priya Mehta', assignDate: '2025-06-01', condition: 'Good', status: 'Assigned', purchaseDate: '2025-05-20', price: 129000, warranty: '2026-05-20' },
-  { id: '3', assetId: 'AST-003', name: 'Dell XPS 15', brand: 'Dell', type: 'Laptop', serialNo: 'DL89XKJH21', assignedTo: '', assignedToName: '', assignDate: '', condition: 'Good', status: 'Available', purchaseDate: '2024-11-10', price: 145000, warranty: '2026-11-10' },
-  { id: '4', assetId: 'AST-004', name: 'Airtel SIM Corporate', brand: 'Airtel', type: 'SIM', serialNo: '89910301XXXXX', assignedTo: 'EMP003', assignedToName: 'Ananya Patel', assignDate: '2025-01-10', condition: 'Excellent', status: 'Assigned', purchaseDate: '2025-01-05', price: 0, warranty: '' },
-  { id: '5', assetId: 'AST-005', name: 'Ergonomic Chair', brand: 'Herman Miller', type: 'Furniture', serialNo: 'HM-CHR-00451', assignedTo: '', assignedToName: '', assignDate: '', condition: 'Fair', status: 'Under Maintenance', purchaseDate: '2023-07-15', price: 65000, warranty: '2025-07-15' },
-  { id: '6', assetId: 'AST-006', name: 'ThinkPad X1 Carbon', brand: 'Lenovo', type: 'Laptop', serialNo: 'LN7K2QP39', assignedTo: 'EMP004', assignedToName: 'Kavya Reddy', assignDate: '2025-09-01', condition: 'Excellent', status: 'Assigned', purchaseDate: '2025-08-20', price: 135000, warranty: '2027-08-20' },
-];
-
-const MOCK_EMPLOYEES: Employee[] = [
-  { id: 'EMP001', name: 'Rahul Sharma' }, { id: 'EMP002', name: 'Priya Mehta' },
-  { id: 'EMP003', name: 'Ananya Patel' }, { id: 'EMP004', name: 'Kavya Reddy' },
-  { id: 'EMP005', name: 'Amit Singh' }, { id: 'EMP006', name: 'Neha Gupta' },
-];
 
 const EMPTY_FORM = {
   type: 'Laptop' as Asset['type'], name: '', brand: '', serialNo: '',
@@ -70,7 +56,7 @@ function initials(name: string) {
 
 export default function Assets() {
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [employees] = useState<Employee[]>(MOCK_EMPLOYEES);
+  const [employees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -91,7 +77,7 @@ export default function Assets() {
       const data = await api.get<Asset[]>('/assets');
       setAssets(data);
     } catch {
-      setAssets(MOCK_ASSETS);
+      setAssets([]);
     } finally {
       setLoading(false);
     }

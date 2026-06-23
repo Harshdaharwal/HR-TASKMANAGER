@@ -19,12 +19,6 @@ interface Visitor {
 }
 
 const today = new Date().toISOString().slice(0, 10);
-const MOCK: Visitor[] = [
-  { id: '1', name: 'Sanjay Kapoor', company: 'TechVentures Pvt Ltd', phone: '9876541230', email: 'sanjay@techventures.com', purpose: 'Business Meeting', hostEmployee: 'Priya Mehta', hostDept: 'Engineering', checkIn: '10:15', checkOut: '12:00', status: 'Checked Out', date: today, badge: 'V-001' },
-  { id: '2', name: 'Ananya Shah', company: 'Digital Creatives', phone: '9876541231', email: 'ananya@dc.com', purpose: 'Interview', hostEmployee: 'Neha Gupta', hostDept: 'HR', checkIn: '11:00', checkOut: '', status: 'Checked In', date: today, badge: 'V-002' },
-  { id: '3', name: 'Raj Kumar', company: 'Freelance Consultant', phone: '9876541232', email: 'raj@gmail.com', purpose: 'Project Discussion', hostEmployee: 'Amit Singh', hostDept: 'Sales', checkIn: '', checkOut: '', status: 'Pre-Registered', date: today, badge: 'V-003' },
-  { id: '4', name: 'Meena Iyer', company: 'FinTech Solutions', phone: '9876541233', email: 'meena@fintech.in', purpose: 'Vendor Meeting', hostEmployee: 'Vikram Joshi', hostDept: 'Marketing', checkIn: '14:30', checkOut: '16:00', status: 'Checked Out', date: today, badge: 'V-004' },
-];
 
 const statusBadge: Record<string, string> = {
   'Checked In': 'badge-green', 'Checked Out': 'badge-gray', 'Pre-Registered': 'badge-blue',
@@ -36,7 +30,7 @@ const purposeColors: Record<string, string> = {
 };
 
 export default function Visitors() {
-  const [visitors, setVisitors] = useState<Visitor[]>(MOCK);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'All' | 'Checked In' | 'Pre-Registered'>('All');
   const [showModal, setShowModal] = useState(false);
@@ -44,7 +38,7 @@ export default function Visitors() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get<Visitor[]>('/visitors').then(d => { if (d?.length) setVisitors(d); }).catch(() => {});
+    api.get<Visitor[]>('/visitors').then(d => { setVisitors(d ?? []); }).catch(() => {});
   }, []);
 
   const filtered = visitors.filter(v => {

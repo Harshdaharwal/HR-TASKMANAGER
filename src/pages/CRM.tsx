@@ -38,15 +38,6 @@ const PIPELINE_COL_COLORS: Record<LeadStatus, string> = {
   Negotiation: '#eab308', Won: '#34d399', Lost: '#f87171',
 };
 
-const MOCK_LEADS: Lead[] = [
-  { id: '1', name: 'Vikram Nair', company: 'TechVision Pvt Ltd', email: 'vikram@techvision.in', phone: '+91 98765 43210', source: 'Website', status: 'Qualified', value: 450000, assignedTo: 'Amit Singh', lastFollowUp: '2026-06-18', notes: 'Interested in enterprise HR suite' },
-  { id: '2', name: 'Sneha Kulkarni', company: 'FinServe Solutions', email: 'sneha@finserve.com', phone: '+91 87654 32109', source: 'Referral', status: 'Negotiation', value: 780000, assignedTo: 'Rahul Sharma', lastFollowUp: '2026-06-19', notes: 'Finalizing contract terms' },
-  { id: '3', name: 'Arjun Menon', company: 'GlobalTrade Corp', email: 'arjun@globaltrade.in', phone: '+91 76543 21098', source: 'Cold Call', status: 'Contacted', value: 320000, assignedTo: 'Priya Mehta', lastFollowUp: '2026-06-17', notes: 'Demo scheduled for next week' },
-  { id: '4', name: 'Divya Krishnan', company: 'StartupHub India', email: 'divya@startuphub.in', phone: '+91 65432 10987', source: 'Social', status: 'New', value: 150000, assignedTo: 'Kavya Reddy', lastFollowUp: '2026-06-20', notes: 'Inbound from LinkedIn campaign' },
-  { id: '5', name: 'Rohit Agarwal', company: 'MegaRetail Ltd', email: 'rohit@megaretail.com', phone: '+91 54321 09876', source: 'Website', status: 'Won', value: 1200000, assignedTo: 'Amit Singh', lastFollowUp: '2026-06-15', notes: 'Contract signed. Onboarding in July.' },
-  { id: '6', name: 'Meena Iyer', company: 'EduTech Systems', email: 'meena@edutech.in', phone: '+91 43210 98765', source: 'Referral', status: 'Lost', value: 280000, assignedTo: 'Rahul Sharma', lastFollowUp: '2026-06-10', notes: 'Went with competitor pricing' },
-  { id: '7', name: 'Suresh Babu', company: 'LogiPrime Solutions', email: 'suresh@logiprime.com', phone: '+91 32109 87654', source: 'Cold Call', status: 'Qualified', value: 560000, assignedTo: 'Priya Mehta', lastFollowUp: '2026-06-18', notes: 'Technical evaluation in progress' },
-];
 
 const EMPTY_FORM = { name: '', company: '', email: '', phone: '', source: 'Website' as LeadSource, status: 'New' as LeadStatus, value: '', assignedTo: '', notes: '' };
 
@@ -72,7 +63,7 @@ export default function CRM() {
       const data = await api.get<Lead[]>('/leads');
       setLeads(data);
     } catch {
-      setLeads(MOCK_LEADS);
+      setLeads([]);
     } finally {
       setLoading(false);
     }

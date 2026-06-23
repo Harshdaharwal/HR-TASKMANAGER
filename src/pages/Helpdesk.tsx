@@ -41,15 +41,6 @@ const STATUS_ICONS: Record<TicketStatus, React.ElementType> = {
   Open: CircleDot, 'In Progress': Clock, Resolved: CheckCircle2, Closed: X,
 };
 
-const MOCK_TICKETS: HelpTicket[] = [
-  { id: '1', ticketNo: 'TKT-001', category: 'IT', subject: 'Laptop screen flickering intermittently', description: 'My Dell laptop screen has been flickering for the past 2 days making it hard to work. Tried restarting but issue persists.', reporter: 'EMP001', reporterName: 'Rahul Sharma', assignedTo: 'IT Support Team', priority: 'High', status: 'In Progress', createdAt: '2026-06-18', slaDeadline: '2026-06-20', overdue: false },
-  { id: '2', ticketNo: 'TKT-002', category: 'HR', subject: 'Salary slip for May not received', description: 'I have not received my salary slip for the month of May 2026. Please check and share the document.', reporter: 'EMP002', reporterName: 'Priya Mehta', assignedTo: 'Neha Gupta (HR)', priority: 'Medium', status: 'Open', createdAt: '2026-06-19', slaDeadline: '2026-06-21', overdue: false },
-  { id: '3', ticketNo: 'TKT-003', category: 'Finance', subject: 'Expense reimbursement pending for 15 days', description: 'My travel expense claim submitted on June 5th is still pending. Amount: ₹4,500. Kindly expedite.', reporter: 'EMP003', reporterName: 'Ananya Patel', assignedTo: 'Rajesh Kumar (Finance)', priority: 'High', status: 'Open', createdAt: '2026-06-15', slaDeadline: '2026-06-17', overdue: true },
-  { id: '4', ticketNo: 'TKT-004', category: 'IT', subject: 'Unable to access Slack workspace', description: 'Getting authentication error when trying to log into company Slack. Error code: OAUTH_ACCESS_DENIED', reporter: 'EMP004', reporterName: 'Kavya Reddy', assignedTo: 'IT Support Team', priority: 'Critical', status: 'In Progress', createdAt: '2026-06-19', slaDeadline: '2026-06-19', overdue: true },
-  { id: '5', ticketNo: 'TKT-005', category: 'Admin', subject: 'Request for parking slot allocation', description: 'Requesting a dedicated parking slot in basement B2. I have recently shifted to own vehicle commute.', reporter: 'EMP005', reporterName: 'Amit Singh', assignedTo: 'Admin Team', priority: 'Low', status: 'Resolved', createdAt: '2026-06-14', slaDeadline: '2026-06-16', overdue: false },
-  { id: '6', ticketNo: 'TKT-006', category: 'HR', subject: 'Leave policy clarification - WFH during national holiday', description: 'Need clarification on whether working from home on a national holiday counts as comp-off.', reporter: 'EMP006', reporterName: 'Neha Gupta', assignedTo: 'HR Team', priority: 'Low', status: 'Closed', createdAt: '2026-06-12', slaDeadline: '2026-06-14', overdue: false },
-  { id: '7', ticketNo: 'TKT-007', category: 'IT', subject: 'VPN connection drops every 30 minutes', description: 'Corporate VPN disconnects automatically every 30 minutes. Need to reconnect repeatedly which disrupts workflow.', reporter: 'EMP001', reporterName: 'Rahul Sharma', assignedTo: 'IT Support Team', priority: 'High', status: 'Open', createdAt: '2026-06-20', slaDeadline: '2026-06-22', overdue: false },
-];
 
 const EMPTY_FORM = { category: 'IT' as TicketCategory, subject: '', description: '', priority: 'Medium' as TicketPriority, assignedTo: '' };
 
@@ -123,7 +114,7 @@ export default function Helpdesk() {
       const data = await api.get<HelpTicket[]>('/tickets');
       setTickets(data);
     } catch {
-      setTickets(MOCK_TICKETS);
+      setTickets([]);
     } finally {
       setLoading(false);
     }

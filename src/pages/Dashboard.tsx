@@ -23,39 +23,6 @@ interface RecentActivity {
 }
 interface Birthday { name: string; avatar: string; date: string; dept: string; type: 'birthday'|'anniversary'; }
 
-// ── Fallback data ─────────────────────────────────────────────────────────────
-const FB_STATS: DashboardStats = {
-  totalEmployees:142, presentToday:118, pendingLeaves:7, openJobs:5,
-  totalTasks:34, monthlyPayroll:2850000, helpdeskTickets:12,
-  revenueTarget:5000000, revenueActual:4320000,
-};
-const FB_ATTENDANCE = [
-  {month:'Jan',present:88,absent:8,leave:4},{month:'Feb',present:91,absent:6,leave:3},
-  {month:'Mar',present:86,absent:10,leave:4},{month:'Apr',present:93,absent:5,leave:2},
-  {month:'May',present:90,absent:7,leave:3},{month:'Jun',present:83,absent:12,leave:5},
-];
-const FB_PAYROLL = [
-  {month:'Jan',amount:2600000},{month:'Feb',amount:2650000},{month:'Mar',amount:2700000},
-  {month:'Apr',amount:2720000},{month:'May',amount:2800000},{month:'Jun',amount:2850000},
-];
-const FB_DEPTS = [
-  {name:'Engineering',count:45,color:'#3b82f6'},{name:'Sales',count:28,color:'#10b981'},
-  {name:'Design',count:14,color:'#8b5cf6'},{name:'HR',count:10,color:'#f59e0b'},
-  {name:'Finance',count:18,color:'#ec4899'},{name:'Ops',count:27,color:'#06b6d4'},
-];
-const FB_ACTIVITY: RecentActivity[] = [
-  {id:'1',action:'New employee onboarded',user:'Riya Sharma',time:'5m ago',type:'hire'},
-  {id:'2',action:'Leave approved',user:'Amit Kumar',time:'22m ago',type:'leave'},
-  {id:'3',action:'Payroll processed',user:'Finance Team',time:'1h ago',type:'payroll'},
-  {id:'4',action:'Ticket resolved',user:'IT Helpdesk',time:'2h ago',type:'ticket'},
-  {id:'5',action:'Review submitted',user:'Priya Mehta',time:'3h ago',type:'task'},
-];
-const FB_BDAYS: Birthday[] = [
-  {name:'Kavya Reddy',avatar:'KR',date:'Jun 22',dept:'Engineering',type:'birthday'},
-  {name:'Rohit Verma',avatar:'RV',date:'Jun 25',dept:'Sales',type:'birthday'},
-  {name:'Priya Mehta',avatar:'PM',date:'Aug 1',dept:'Engineering',type:'anniversary'},
-];
-
 // ── Chart Tooltip ─────────────────────────────────────────────────────────────
 function ChartTip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
@@ -115,15 +82,15 @@ function kpiCards(s: DashboardStats) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [stats,      setStats]      = useState<DashboardStats>(FB_STATS);
-  const [attendance, setAttendance] = useState(FB_ATTENDANCE);
-  const [payroll,    setPayroll]    = useState(FB_PAYROLL);
-  const [depts,      setDepts]      = useState(FB_DEPTS);
-  const [activity,   setActivity]   = useState<RecentActivity[]>(FB_ACTIVITY);
-  const [bdays,      setBdays]      = useState<Birthday[]>(FB_BDAYS);
+  const [stats,      setStats]      = useState<DashboardStats>({ totalEmployees:0, presentToday:0, pendingLeaves:0, openJobs:0, totalTasks:0, monthlyPayroll:0, helpdeskTickets:0, revenueTarget:0, revenueActual:0 });
+  const [attendance, setAttendance] = useState<{month:string;present:number;absent:number;leave:number}[]>([]);
+  const [payroll,    setPayroll]    = useState<{month:string;amount:number}[]>([]);
+  const [depts,      setDepts]      = useState<{name:string;count:number;color:string}[]>([]);
+  const [activity,   setActivity]   = useState<RecentActivity[]>([]);
+  const [bdays,      setBdays]      = useState<Birthday[]>([]);
 
   useEffect(() => {
-    api.get<{ stats: DashboardStats; monthlyAttendance: typeof FB_ATTENDANCE; payrollTrend: typeof FB_PAYROLL; departmentHeadcount: typeof FB_DEPTS; recentActivity: RecentActivity[]; upcomingCelebrations: Birthday[] }>('/dashboard')
+    api.get<{ stats: DashboardStats; monthlyAttendance: {month:string;present:number;absent:number;leave:number}[]; payrollTrend: {month:string;amount:number}[]; departmentHeadcount: {name:string;count:number;color:string}[]; recentActivity: RecentActivity[]; upcomingCelebrations: Birthday[] }>('/dashboard')
       .then(d => {
         setStats(d.stats); setAttendance(d.monthlyAttendance); setPayroll(d.payrollTrend);
         setDepts(d.departmentHeadcount); setActivity(d.recentActivity); setBdays(d.upcomingCelebrations);

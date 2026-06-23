@@ -34,37 +34,11 @@ const STATUS_COLORS: Record<ExpenseStatus, string> = {
   Pending: 'badge-yellow', Approved: 'badge-green', Rejected: 'badge-red',
 };
 
-const MOCK_EXPENSES: Expense[] = [
-  { id: '1', employee: 'EMP001', employeeName: 'Rahul Sharma', department: 'Engineering', category: 'Travel', amount: 4500, date: '2026-06-10', description: 'Flight to Bangalore for client meet', receipt: true, status: 'Approved' },
-  { id: '2', employee: 'EMP002', employeeName: 'Priya Mehta', department: 'Sales', category: 'Hotel', amount: 8200, date: '2026-06-12', description: '2 nights stay - Mumbai client visit', receipt: true, status: 'Pending' },
-  { id: '3', employee: 'EMP003', employeeName: 'Ananya Patel', department: 'HR', category: 'Food', amount: 1200, date: '2026-06-14', description: 'Team lunch for Q2 review', receipt: true, status: 'Approved' },
-  { id: '4', employee: 'EMP004', employeeName: 'Kavya Reddy', department: 'Design', category: 'Fuel', amount: 2300, date: '2026-06-15', description: 'Site visit Pune office - fuel reimbursement', receipt: false, status: 'Pending' },
-  { id: '5', employee: 'EMP005', employeeName: 'Amit Singh', department: 'Sales', category: 'Travel', amount: 12000, date: '2026-06-16', description: 'Delhi trip - BD meeting', receipt: true, status: 'Rejected' },
-  { id: '6', employee: 'EMP006', employeeName: 'Neha Gupta', department: 'Finance', category: 'Other', amount: 3400, date: '2026-06-17', description: 'Office supplies purchase', receipt: true, status: 'Approved' },
-  { id: '7', employee: 'EMP001', employeeName: 'Rahul Sharma', department: 'Engineering', category: 'Food', amount: 850, date: '2026-06-18', description: 'Overtime dinner allowance', receipt: false, status: 'Pending' },
-];
+const BAR_DATA: { category: string; amount: number }[] = [];
 
-const BAR_DATA = [
-  { category: 'Travel', amount: 16500 },
-  { category: 'Food', amount: 4200 },
-  { category: 'Fuel', amount: 7800 },
-  { category: 'Hotel', amount: 22000 },
-  { category: 'Other', amount: 5600 },
-];
+const AREA_DATA: { month: string; amount: number }[] = [];
 
-const AREA_DATA = [
-  { month: 'Jan', amount: 28000 }, { month: 'Feb', amount: 35000 },
-  { month: 'Mar', amount: 42000 }, { month: 'Apr', amount: 38000 },
-  { month: 'May', amount: 55000 }, { month: 'Jun', amount: 48000 },
-];
-
-const DEPT_REPORT = [
-  { dept: 'Engineering', total: 45000, approved: 38000, count: 12 },
-  { dept: 'Sales', total: 62000, approved: 51000, count: 18 },
-  { dept: 'HR', total: 18000, approved: 15000, count: 7 },
-  { dept: 'Design', dept2: 'Design', total: 12000, approved: 9500, count: 5 },
-  { dept: 'Finance', total: 8500, approved: 7200, count: 3 },
-];
+const DEPT_REPORT: { dept: string; total: number; approved: number; count: number }[] = [];
 
 const CUSTOM_TOOLTIP = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -99,7 +73,7 @@ export default function Expenses() {
       const data = await api.get<Expense[]>('/expenses');
       setExpenses(data);
     } catch {
-      setExpenses(MOCK_EXPENSES);
+      setExpenses([]);
     } finally {
       setLoading(false);
     }

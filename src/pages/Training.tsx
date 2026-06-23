@@ -16,14 +16,6 @@ interface Course {
   description: string;
 }
 
-const MOCK: Course[] = [
-  { id: '1', title: 'React & TypeScript Fundamentals', category: 'Technical', instructor: 'Priya Mehta', duration: '12h', enrolled: 24, completed: 18, status: 'Active', level: 'Intermediate', rating: 4.8, description: 'Master React 18 with TypeScript for modern web development.' },
-  { id: '2', title: 'Leadership & Team Management', category: 'Soft Skills', instructor: 'Amit Singh', duration: '8h', enrolled: 32, completed: 30, status: 'Active', level: 'Advanced', rating: 4.9, description: 'Build high-performing teams and lead with confidence.' },
-  { id: '3', title: 'Excel & Data Analysis', category: 'Productivity', instructor: 'Neha Gupta', duration: '6h', enrolled: 45, completed: 40, status: 'Completed', level: 'Beginner', rating: 4.6, description: 'Master Excel formulas, pivot tables, and dashboards.' },
-  { id: '4', title: 'GST & Taxation Basics', category: 'Finance', instructor: 'CA Vikram', duration: '10h', enrolled: 20, completed: 8, status: 'Active', level: 'Beginner', rating: 4.5, description: 'Understand GST, TDS, and Indian taxation essentials.' },
-  { id: '5', title: 'Digital Marketing & SEO', category: 'Marketing', instructor: 'Vikram Joshi', duration: '14h', enrolled: 16, completed: 5, status: 'Active', level: 'Intermediate', rating: 4.7, description: 'Drive organic traffic and master modern marketing tools.' },
-  { id: '6', title: 'HR Compliance & Labour Laws', category: 'HR', instructor: 'Neha Gupta', duration: '5h', enrolled: 38, completed: 36, status: 'Completed', level: 'Intermediate', rating: 4.4, description: 'Stay compliant with labour laws and HR regulations.' },
-];
 
 const categoryColors: Record<string, string> = {
   Technical: 'badge-blue', 'Soft Skills': 'badge-purple', Productivity: 'badge-green',
@@ -35,7 +27,7 @@ const levelColors: Record<string, string> = {
 };
 
 export default function Training() {
-  const [courses, setCourses] = useState<Course[]>(MOCK);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'All' | 'Active' | 'Completed'>('All');
@@ -44,7 +36,7 @@ export default function Training() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get<Course[]>('/training').then(d => { if (d?.length) setCourses(d); }).catch(() => {});
+    api.get<Course[]>('/training').then(d => { setCourses(d ?? []); }).catch(() => {});
   }, []);
 
   const filtered = courses.filter(c => {
