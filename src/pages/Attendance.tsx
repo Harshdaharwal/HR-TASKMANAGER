@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search, Download, Clock, CheckCircle, XCircle,
-  Home, MinusCircle, Edit2, X, Calendar, TrendingUp, Plus,
+  Home, MinusCircle, Edit2, X, Calendar, TrendingUp, Plus, Fingerprint,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { useApp } from '../context/AppContext';
 import { api } from '../api/client';
-import type { AttendanceRecord, AttendanceStatus } from '../types';
+import type { AttendanceRecord, AttendanceStatus, Employee } from '../types';
 
 interface DayAttendanceStat {
   day: number; present: number; absent: number; wfh: number; halfDay: number;
@@ -74,6 +74,272 @@ function StatusEditor({ current, onSave, onCancel }: {
   );
 }
 
+/* ═══════════════════════════════════════════════════════
+   BIOMETRIC ATTENDANCE — WebAuthn fingerprint feature
+   ═══════════════════════════════════════════════════════ */
+
+interface BiometricRecord {
+  id?: string;
+  credentialId: string;
+  employeeId: string;
+  employeeName: string;
+  employeeDepartment: string;
+  registeredAt?: string;
+}
+
+function buf2b64url(buf: ArrayBuffer): string {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+function BiometricTab({ employees }: { employees: Employee[] }) {
+  const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
+  const [scanning, setScanning] = useState(false);
+  const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [msg, setMsg] = useState('');
+  const [detected, setDetected] = useState<BiometricRecord | null>(null);
+  const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [registered, setRegistered] = useState<BiometricRecord[]>([]);
+  const [attendanceDone, setAttendanceDone] = useState(false);
+
+  const isSupported = typeof PublicKeyCredential !== 'undefined';
+
+  useEffect(() => {
+    api.get<BiometricRecord[]>('/biometric').then(d => setRegistered(d ?? [])).catch(() => {});
+  }, []);
+
+  const resetState = () => {
+    setDetected(null); setMsg(''); setScanStatus('idle'); setAttendanceDone(false);
+  };
+
+  const handleRegister = async () => {
+    const emp = employees.find(e => e.id === selectedEmpId);
+    if (!emp) { setMsg('Please select an employee first'); setScanStatus('error'); return; }
+    if (registered.find(r => r.employeeId === emp.id)) {
+      setMsg(`${emp.name} already registered. Remove entry to re-register.`);
+      setScanStatus('error'); return;
+    }
+    setScanning(true); setMsg(''); setScanStatus('idle');
+    try {
+      const cred = await navigator.credentials.create({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          rp: { name: 'NeXHR', id: window.location.hostname },
+          user: { id: new TextEncoder().encode(emp.id), name: emp.email || emp.name, displayName: emp.name },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'required' },
+          timeout: 60000,
+        },
+      }) as PublicKeyCredential;
+
+      const record: BiometricRecord = {
+        credentialId: buf2b64url(cred.rawId),
+        employeeId: emp.id,
+        employeeName: emp.name,
+        employeeDepartment: emp.department,
+        registeredAt: new Date().toISOString(),
+      };
+      await api.post('/biometric', record);
+      setRegistered(prev => [...prev, record]);
+      setMsg(`${emp.name}'s fingerprint registered successfully!`);
+      setScanStatus('success');
+      setSelectedEmpId('');
+    } catch (err: any) {
+      const n = err?.name ?? '';
+      if (n === 'NotAllowedError') setMsg('Scan cancelled or permission denied.');
+      else if (n === 'InvalidStateError') setMsg('This fingerprint is already registered on this device.');
+      else setMsg(err?.message ?? 'Registration failed');
+      setScanStatus('error');
+    } finally { setScanning(false); }
+  };
+
+  const handleCheckin = async () => {
+    setScanning(true); setDetected(null); setMsg(''); setScanStatus('idle'); setAttendanceDone(false);
+    try {
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge: crypto.getRandomValues(new Uint8Array(32)),
+          userVerification: 'required',
+          timeout: 60000,
+        },
+      }) as PublicKeyCredential;
+
+      const credentialId = buf2b64url(assertion.rawId);
+      const result = await api.post<BiometricRecord | null>('/biometric/verify', { credentialId });
+      if (!result) {
+        setMsg('Fingerprint not registered. Please register first.'); setScanStatus('error'); return;
+      }
+      setDetected(result); setScanStatus('success');
+    } catch (err: any) {
+      const n = err?.name ?? '';
+      setMsg(n === 'NotAllowedError' ? 'Scan cancelled.' : err?.message ?? 'Scan failed');
+      setScanStatus('error');
+    } finally { setScanning(false); }
+  };
+
+  const confirmAttendance = async () => {
+    if (!detected) return;
+    try {
+      await api.post('/attendance', {
+        employeeId: detected.employeeId,
+        employeeName: detected.employeeName,
+        date: todayISO(),
+        checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        status: 'Present',
+        workHours: 0,
+      });
+      setAttendanceDone(true);
+      setMsg(`Attendance recorded for ${detected.employeeName}!`);
+      setScanStatus('success');
+    } catch (err: any) {
+      setMsg(`Failed: ${err.message}`); setScanStatus('error');
+    }
+  };
+
+  const deleteRegistered = async (r: BiometricRecord) => {
+    if (!r.id) return;
+    try { await api.delete(`/biometric/${r.id}`); setRegistered(prev => prev.filter(x => x.credentialId !== r.credentialId)); }
+    catch { /* ignore */ }
+  };
+
+  if (!isSupported) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <Fingerprint size={48} style={{ color: '#94a3b8', marginBottom: 16 }} />
+        <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.7 }}>
+          Fingerprint authentication requires <strong>Chrome on Android</strong> with a fingerprint sensor.
+        </p>
+      </div>
+    );
+  }
+
+  const fpBtnStyle = (active: boolean, done?: boolean): React.CSSProperties => ({
+    borderRadius: '50%', border: `3px solid ${done ? '#10b981' : active ? '#8b5cf6' : '#93c5fd'}`,
+    cursor: active ? 'not-allowed' : 'pointer', transition: 'all 0.3s',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    animation: active ? 'biometricPulse 1.5s ease-in-out infinite' : 'none',
+    boxShadow: done ? '0 0 0 12px rgba(16,185,129,0.1)' : active ? '0 0 0 10px rgba(139,92,246,0.1)' : '0 8px 32px rgba(59,130,246,0.15)',
+  });
+
+  return (
+    <div style={{ maxWidth: 500, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Mode tabs */}
+      <div className="tab-bar" style={{ width: 'fit-content' }}>
+        {(['checkin', 'register'] as const).map(m => (
+          <button key={m} className={`tab-item ${mode === m ? 'active' : ''}`}
+            onClick={() => { setMode(m); resetState(); }}>
+            {m === 'checkin' ? '✅ Mark Attendance' : '🔑 Register Fingerprint'}
+          </button>
+        ))}
+      </div>
+
+      {/* ── CHECK-IN MODE ── */}
+      {mode === 'checkin' && (
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '40px 24px' }}>
+          {!detected || attendanceDone ? (
+            <>
+              <div style={{ textAlign: 'center' }}>
+                <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 22, margin: '0 0 6px' }}>
+                  {attendanceDone ? '✅ Attendance Marked!' : 'Fingerprint Check-in'}
+                </h2>
+                <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>
+                  {attendanceDone ? msg : 'Place your finger on the sensor'}
+                </p>
+              </div>
+              <button onClick={attendanceDone ? resetState : handleCheckin} disabled={scanning}
+                style={{ width: 150, height: 150, background: attendanceDone ? 'linear-gradient(135deg,#d1fae5,#a7f3d0)' : scanning ? 'rgba(139,92,246,0.07)' : 'linear-gradient(135deg,#eff6ff,#f0fdf4)', ...fpBtnStyle(scanning, attendanceDone) }}>
+                <Fingerprint size={64} color={attendanceDone ? '#10b981' : scanning ? '#8b5cf6' : '#3b82f6'} strokeWidth={1.2} />
+              </button>
+              <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+                {scanning ? '⏳ Scanning...' : attendanceDone ? 'Tap to scan next person' : 'Tap to scan fingerprint'}
+              </p>
+              {msg && !attendanceDone && (
+                <div style={{ padding: '12px 20px', borderRadius: 12, fontSize: 14, fontWeight: 600, textAlign: 'center', background: '#fee2e2', color: '#991b1b', width: '100%' }}>{msg}</div>
+              )}
+            </>
+          ) : (
+            /* Employee detected */
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+              <div style={{ width: 76, height: 76, borderRadius: '50%', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, color: '#fff', fontWeight: 800 }}>
+                {detected.employeeName.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 24, margin: 0 }}>{detected.employeeName}</h2>
+                <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0' }}>{detected.employeeDepartment}</p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '6px 16px', borderRadius: 20, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                  <Clock size={14} color="#10b981" />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#10b981' }}>
+                    {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                  </span>
+                </div>
+              </div>
+              {msg && <div style={{ padding: '10px 18px', borderRadius: 10, fontSize: 14, background: scanStatus === 'error' ? '#fee2e2' : '#d1fae5', color: scanStatus === 'error' ? '#991b1b' : '#065f46', width: '100%', textAlign: 'center' }}>{msg}</div>}
+              <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                <button onClick={resetState} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+                <button onClick={confirmAttendance} className="btn btn-primary" style={{ flex: 1 }}>Mark as Present</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── REGISTER MODE ── */}
+      {mode === 'register' && (
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '32px 24px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 20, margin: '0 0 6px' }}>Register Fingerprint</h2>
+            <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Select employee then scan their finger on this device</p>
+          </div>
+          <select value={selectedEmpId}
+            onChange={e => { setSelectedEmpId(e.target.value); setMsg(''); setScanStatus('idle'); }}
+            className="input" style={{ width: '100%' }}>
+            <option value="">— Select Employee —</option>
+            {employees.map(e => {
+              const isReg = registered.some(r => r.employeeId === e.id);
+              return <option key={e.id} value={e.id}>{e.name} — {e.department}{isReg ? ' ✓ Registered' : ''}</option>;
+            })}
+          </select>
+          <button onClick={handleRegister} disabled={!selectedEmpId || scanning}
+            style={{ width: 120, height: 120, background: scanning ? 'rgba(139,92,246,0.08)' : selectedEmpId ? '#eff6ff' : '#f8fafc', ...fpBtnStyle(scanning) }}>
+            <Fingerprint size={52} color={scanning ? '#8b5cf6' : selectedEmpId ? '#3b82f6' : '#cbd5e1'} strokeWidth={1.2} />
+          </button>
+          <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
+            {scanning ? '⏳ Place finger on sensor...' : 'Tap to register fingerprint'}
+          </p>
+          {msg && (
+            <div style={{ padding: '12px 20px', borderRadius: 12, fontSize: 14, fontWeight: 600, textAlign: 'center', width: '100%', background: scanStatus === 'success' ? '#d1fae5' : '#fee2e2', color: scanStatus === 'success' ? '#065f46' : '#991b1b' }}>{msg}</div>
+          )}
+          {/* Registered list */}
+          {registered.length > 0 && (
+            <div style={{ width: '100%' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>Registered ({registered.length})</p>
+              {registered.map(r => (
+                <div key={r.credentialId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 12, background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 15 }}>
+                      {r.employeeName.charAt(0)}
+                    </div>
+                    <div>
+                      <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14, margin: 0 }}>{r.employeeName}</p>
+                      <p style={{ color: '#64748b', fontSize: 12, margin: 0 }}>{r.employeeDepartment}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span className="badge badge-green" style={{ fontSize: 11 }}>Registered</span>
+                    <button onClick={() => deleteRegistered(r)} style={{ background: 'rgba(239,68,68,0.08)', border: 'none', borderRadius: 8, cursor: 'pointer', color: '#ef4444', padding: '4px 8px', fontSize: 11, fontWeight: 600 }}>Remove</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════ */
+
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -85,7 +351,8 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function Attendance() {
-  const { attendanceRecords, setAttendanceRecords } = useApp();
+  const { attendanceRecords, setAttendanceRecords, employees } = useApp();
+  const [mainTab, setMainTab] = useState<'records' | 'biometric'>('records');
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -165,18 +432,35 @@ export default function Attendance() {
           </h1>
           <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0' }}>Track daily attendance and work hours</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ position: 'relative' }}>
-            <Calendar size={15} color="#64748b" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-            <input ref={dateInputRef} type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-              className="input" style={{ paddingLeft: 36, minWidth: 160 }} />
+        {mainTab === 'records' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ position: 'relative' }}>
+              <Calendar size={15} color="#64748b" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <input ref={dateInputRef} type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
+                className="input" style={{ paddingLeft: 36, minWidth: 160 }} />
+            </div>
+            <button onClick={exportCSV} className="btn btn-ghost">
+              <Download size={15} /> Export CSV
+            </button>
           </div>
-          <button onClick={exportCSV} className="btn btn-ghost">
-            <Download size={15} /> Export CSV
-          </button>
-        </div>
+        )}
       </div>
 
+      {/* ── Main Tabs: Records | Fingerprint ── */}
+      <div className="tab-bar" style={{ width: 'fit-content' }}>
+        <button className={`tab-item ${mainTab === 'records' ? 'active' : ''}`} onClick={() => setMainTab('records')}>
+          📋 Attendance Records
+        </button>
+        <button className={`tab-item ${mainTab === 'biometric' ? 'active' : ''}`} onClick={() => setMainTab('biometric')}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Fingerprint size={15} style={{ display: 'inline' }} /> Fingerprint
+        </button>
+      </div>
+
+      {/* ── Fingerprint Tab ── */}
+      {mainTab === 'biometric' && <BiometricTab employees={employees} />}
+
+      {mainTab === 'records' && <>
       {/* ── KPI Stat Cards ── */}
       <div className="stat-grid-auto">
         {[
@@ -361,10 +645,15 @@ export default function Attendance() {
       <button className="fab mobile-only" aria-label="Mark Attendance" onClick={() => { dateInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }); dateInputRef.current?.focus(); }}>
         <Plus size={22} color="#fff" />
       </button>
+      </>}
 
       <style>{`
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         .premium-table tbody tr:hover td { background: rgba(37,99,235,0.03); }
+        @keyframes biometricPulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.25),0 0 0 0 rgba(139,92,246,0.1); }
+          50% { box-shadow: 0 0 0 14px rgba(139,92,246,0.1),0 0 0 28px rgba(139,92,246,0.04); }
+        }
       `}</style>
     </div>
   );

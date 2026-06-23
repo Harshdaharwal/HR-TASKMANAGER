@@ -219,6 +219,20 @@ createCRUD('leads', 'Leads');
 createCRUD('inventory', 'Inventory');
 createCRUD('visitors', 'Visitors');
 createCRUD('training', 'Training');
+createCRUD('biometric', 'Biometrics');
+
+// Verify fingerprint by credential ID → returns employee info (or null if not registered)
+app.post('/api/biometric/verify', async (req, res) => {
+  try {
+    const { credentialId } = req.body;
+    if (!credentialId) return res.status(400).json({ success: false, error: 'credentialId required' });
+    const rows = await readSheet('Biometrics');
+    const found = rows.find(r => r.credentialId === credentialId) || null;
+    res.json({ success: true, data: found });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Dashboard stats endpoint
 app.get('/api/dashboard', async (req, res) => {
