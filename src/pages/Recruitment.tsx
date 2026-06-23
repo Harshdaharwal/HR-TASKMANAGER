@@ -4,6 +4,7 @@ import {
   Calendar, Clock, TrendingUp, Eye, UserX,
   Search, Award, Building2
 } from 'lucide-react'
+import { api } from '../api/client'
 
 interface Job {
   id: number
@@ -36,26 +37,6 @@ interface Candidate {
 }
 
 const STAGES = ['Applied', 'Screening', 'Interview', 'Technical', 'HR Round', 'Offer', 'Hired', 'Rejected']
-
-const mockJobs: Job[] = [
-  { id: 1, title: 'Senior React Developer', department: 'Engineering', location: 'Bangalore', type: 'Full-time', experience: '4-7 years', salaryMin: 18, salaryMax: 28, applicants: 47, maxApplicants: 60, status: 'Active', posted: '2026-06-01', closing: '2026-06-30', description: 'We are looking for an experienced React developer to join our growing team and build world-class user interfaces.' },
-  { id: 2, title: 'Product Designer', department: 'Design', location: 'Remote', type: 'Remote', experience: '2-4 years', salaryMin: 12, salaryMax: 20, applicants: 32, maxApplicants: 40, status: 'Active', posted: '2026-06-05', closing: '2026-06-28', description: 'Join our design team to create beautiful and intuitive product experiences for millions of users.' },
-  { id: 3, title: 'Data Scientist', department: 'Analytics', location: 'Mumbai', type: 'Full-time', experience: '3-5 years', salaryMin: 16, salaryMax: 24, applicants: 28, maxApplicants: 30, status: 'Active', posted: '2026-06-08', closing: '2026-07-05', description: 'Work with large datasets to derive actionable business insights and build predictive ML models.' },
-  { id: 4, title: 'DevOps Engineer', department: 'Engineering', location: 'Hyderabad', type: 'Full-time', experience: '3-6 years', salaryMin: 15, salaryMax: 22, applicants: 18, maxApplicants: 25, status: 'Paused', posted: '2026-05-20', closing: '2026-06-25', description: 'Manage our cloud infrastructure and CI/CD pipelines to ensure smooth deployments.' },
-  { id: 5, title: 'Marketing Manager', department: 'Marketing', location: 'Delhi', type: 'Full-time', experience: '5-8 years', salaryMin: 14, salaryMax: 20, applicants: 55, maxApplicants: 50, status: 'Closed', posted: '2026-05-15', closing: '2026-06-15', description: 'Lead our marketing campaigns and build brand presence across digital channels.' },
-  { id: 6, title: 'HR Business Partner', department: 'HR', location: 'Pune', type: 'Full-time', experience: '4-6 years', salaryMin: 10, salaryMax: 16, applicants: 22, maxApplicants: 30, status: 'Active', posted: '2026-06-10', closing: '2026-07-10', description: 'Partner with business leaders to align HR strategy with company objectives.' },
-]
-
-const mockCandidates: Candidate[] = [
-  { id: 1, name: 'Arjun Mehta', email: 'arjun@email.com', appliedJob: 'Senior React Developer', experience: '5 years', skills: ['React', 'TypeScript', 'Node.js', 'AWS'], rating: 4.5, stage: 'Interview', appliedDate: '2026-06-05', avatar: 'AM' },
-  { id: 2, name: 'Kavya Reddy', email: 'kavya@email.com', appliedJob: 'Product Designer', experience: '3 years', skills: ['Figma', 'UX Research', 'Sketch', 'Prototyping'], rating: 4.2, stage: 'Technical', appliedDate: '2026-06-08', avatar: 'KR' },
-  { id: 3, name: 'Nikhil Sharma', email: 'nikhil@email.com', appliedJob: 'Data Scientist', experience: '4 years', skills: ['Python', 'ML', 'TensorFlow', 'SQL'], rating: 3.8, stage: 'Screening', appliedDate: '2026-06-10', avatar: 'NS' },
-  { id: 4, name: 'Divya Patel', email: 'divya@email.com', appliedJob: 'Senior React Developer', experience: '6 years', skills: ['React', 'GraphQL', 'Redux', 'Jest'], rating: 4.8, stage: 'HR Round', appliedDate: '2026-06-03', avatar: 'DP' },
-  { id: 5, name: 'Rohit Kumar', email: 'rohit@email.com', appliedJob: 'DevOps Engineer', experience: '4 years', skills: ['Docker', 'Kubernetes', 'Jenkins', 'AWS'], rating: 4.0, stage: 'Applied', appliedDate: '2026-06-12', avatar: 'RK' },
-  { id: 6, name: 'Shreya Gupta', email: 'shreya@email.com', appliedJob: 'HR Business Partner', experience: '5 years', skills: ['Recruitment', 'L&D', 'Compliance', 'HRIS'], rating: 4.3, stage: 'Offer', appliedDate: '2026-06-07', avatar: 'SG' },
-  { id: 7, name: 'Aditya Nair', email: 'aditya@email.com', appliedJob: 'Product Designer', experience: '2 years', skills: ['Figma', 'Adobe XD', 'CSS'], rating: 3.5, stage: 'Rejected', appliedDate: '2026-06-09', avatar: 'AN' },
-  { id: 8, name: 'Preethi Singh', email: 'preethi@email.com', appliedJob: 'Data Scientist', experience: '3 years', skills: ['R', 'Statistics', 'Tableau', 'SQL'], rating: 4.1, stage: 'Hired', appliedDate: '2026-05-28', avatar: 'PS' },
-]
 
 const stageColors: Record<string, string> = {
   Applied: 'badge-gray', Screening: 'badge-blue', Interview: 'badge-purple',
@@ -90,8 +71,13 @@ export default function Recruitment() {
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => { setJobs(mockJobs); setCandidates(mockCandidates); setLoading(false) }, 900)
-    return () => clearTimeout(t)
+    Promise.all([
+      api.get<Job[]>('/jobs').catch(() => []),
+      api.get<Candidate[]>('/candidates').catch(() => []),
+    ]).then(([jobData, candidateData]) => {
+      setJobs(jobData)
+      setCandidates(candidateData)
+    }).finally(() => setLoading(false))
   }, [])
 
   const pipelineByStage = STAGES.reduce((acc, s) => {

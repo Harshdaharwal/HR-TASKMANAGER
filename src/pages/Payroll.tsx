@@ -6,6 +6,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
+import { api } from '../api/client'
 
 interface PayrollEmployee {
   id: number
@@ -22,25 +23,6 @@ interface PayrollEmployee {
   avatar: string
 }
 
-const mockPayroll: PayrollEmployee[] = [
-  { id: 1, name: 'Rahul Sharma', dept: 'Engineering', basic: 80000, hra: 32000, allowances: 15000, pf: 9600, tax: 12000, bonus: 10000, netSalary: 115400, status: 'Paid', avatar: 'RS' },
-  { id: 2, name: 'Priya Patel', dept: 'Design', basic: 65000, hra: 26000, allowances: 12000, pf: 7800, tax: 9500, bonus: 8000, netSalary: 93700, status: 'Paid', avatar: 'PP' },
-  { id: 3, name: 'Amit Kumar', dept: 'HR', basic: 55000, hra: 22000, allowances: 10000, pf: 6600, tax: 7500, bonus: 5000, netSalary: 77900, status: 'Pending', avatar: 'AK' },
-  { id: 4, name: 'Sneha Reddy', dept: 'Finance', basic: 72000, hra: 28800, allowances: 13000, pf: 8640, tax: 11000, bonus: 9000, netSalary: 103160, status: 'Processing', avatar: 'SR' },
-  { id: 5, name: 'Vikram Singh', dept: 'Engineering', basic: 90000, hra: 36000, allowances: 18000, pf: 10800, tax: 15000, bonus: 12000, netSalary: 130200, status: 'Paid', avatar: 'VS' },
-  { id: 6, name: 'Ananya Gupta', dept: 'Marketing', basic: 60000, hra: 24000, allowances: 11000, pf: 7200, tax: 8500, bonus: 7000, netSalary: 86300, status: 'Pending', avatar: 'AG' },
-  { id: 7, name: 'Rohan Mehta', dept: 'Sales', basic: 50000, hra: 20000, allowances: 9000, pf: 6000, tax: 6500, bonus: 15000, netSalary: 81500, status: 'Paid', avatar: 'RM' },
-]
-
-const deptChartData = [
-  { dept: 'Eng', amount: 24.56 },
-  { dept: 'Design', amount: 9.37 },
-  { dept: 'HR', amount: 7.79 },
-  { dept: 'Finance', amount: 10.32 },
-  { dept: 'Marketing', amount: 8.63 },
-  { dept: 'Sales', amount: 8.15 },
-]
-
 const months = ['January 2026','February 2026','March 2026','April 2026','May 2026','June 2026','July 2026','August 2026']
 
 export default function Payroll() {
@@ -52,17 +34,20 @@ export default function Payroll() {
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => {
-      setData(mockPayroll)
-      setLoading(false)
-    }, 1000)
-    return () => clearTimeout(t)
+    api.get<PayrollEmployee[]>('/payroll')
+      .then(data => setData(data))
+      .catch(() => setData([]))
+      .finally(() => setLoading(false))
   }, [selectedMonth])
 
   const gross = data.reduce((s, e) => s + e.basic + e.hra + e.allowances + e.bonus, 0)
   const net = data.reduce((s, e) => s + e.netSalary, 0)
   const deductions = data.reduce((s, e) => s + e.pf + e.tax, 0)
   const pending = data.filter(e => e.status === 'Pending').reduce((s, e) => s + e.netSalary, 0)
+
+  const deptChartData = Object.entries(
+    data.reduce((acc, e) => { acc[e.dept] = (acc[e.dept] || 0) + e.netSalary / 100000; return acc }, {} as Record<string, number>)
+  ).map(([dept, amount]) => ({ dept, amount: Math.round(amount * 100) / 100 }))
 
   const toL = (n: number) => `₹${(n / 100000).toFixed(2)}L`
 

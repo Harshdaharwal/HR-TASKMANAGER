@@ -3,6 +3,7 @@ import {
   Star, Target, ChevronDown, ChevronUp, Plus, X,
   Award, TrendingUp, CheckCircle, XCircle
 } from 'lucide-react'
+import { api } from '../api/client'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -32,36 +33,6 @@ interface Goal {
   status: 'On Track' | 'At Risk' | 'Completed' | 'Overdue'
 }
 
-const mockReviews: Review[] = [
-  { id: 1, name: 'Rahul Sharma', dept: 'Engineering', avatar: 'RS', rating: 4.5, period: 'Q2 2026', status: 'Completed', reviewer: 'Anjali Verma', goals: [{ name: 'Complete microservices migration', achieved: true, score: 92 }, { name: 'Mentor 2 junior devs', achieved: true, score: 88 }, { name: 'Reduce bug count by 30%', achieved: false, score: 65 }], strengths: ['Technical Leadership', 'Problem Solving', 'Code Quality'], improvements: ['Communication', 'Documentation'] },
-  { id: 2, name: 'Priya Patel', dept: 'Design', avatar: 'PP', rating: 4.2, period: 'Q2 2026', status: 'Completed', reviewer: 'Rohan Mehta', goals: [{ name: 'Redesign onboarding flow', achieved: true, score: 95 }, { name: 'Create design system', achieved: true, score: 90 }, { name: 'User research sessions', achieved: false, score: 70 }], strengths: ['Creativity', 'User Empathy', 'Collaboration'], improvements: ['Deadline Management', 'Presentation Skills'] },
-  { id: 3, name: 'Amit Kumar', dept: 'HR', avatar: 'AK', rating: 3.8, period: 'Q2 2026', status: 'In Progress', reviewer: 'Sneha Reddy', goals: [{ name: 'Reduce time-to-hire by 20%', achieved: true, score: 85 }, { name: 'Implement new HRIS', achieved: false, score: 60 }], strengths: ['Recruitment', 'Compliance'], improvements: ['Tech Adoption', 'Data Analysis', 'Strategic Thinking'] },
-  { id: 4, name: 'Vikram Singh', dept: 'Engineering', avatar: 'VS', rating: 4.8, period: 'Q2 2026', status: 'Completed', reviewer: 'Anjali Verma', goals: [{ name: 'Scale API to 1M requests', achieved: true, score: 98 }, { name: 'Zero-downtime deployment', achieved: true, score: 96 }, { name: 'Security audit pass', achieved: true, score: 94 }], strengths: ['Architecture', 'Performance', 'Security'], improvements: ['Work-Life Balance'] },
-  { id: 5, name: 'Sneha Reddy', dept: 'Finance', avatar: 'SR', rating: 4.0, period: 'Q2 2026', status: 'Pending', reviewer: 'TBD', goals: [{ name: 'Q2 budget variance <5%', achieved: true, score: 88 }, { name: 'Automate expense reports', achieved: false, score: 55 }], strengths: ['Accuracy', 'Compliance'], improvements: ['Process Automation', 'Excel Advanced'] },
-]
-
-const mockGoals: Goal[] = [
-  { id: 1, employee: 'Rahul Sharma', description: 'Complete microservices migration', target: '100% migration by June 30', progress: 87, dueDate: '2026-06-30', status: 'On Track' },
-  { id: 2, employee: 'Priya Patel', description: 'Launch new design system', target: 'All 40 components documented', progress: 72, dueDate: '2026-06-25', status: 'On Track' },
-  { id: 3, employee: 'Amit Kumar', description: 'Reduce time-to-hire by 20%', target: 'Average 25 days (from 31)', progress: 65, dueDate: '2026-06-15', status: 'At Risk' },
-  { id: 4, employee: 'Vikram Singh', description: 'API scalability to 1M RPS', target: 'Achieve in load testing', progress: 100, dueDate: '2026-06-10', status: 'Completed' },
-  { id: 5, employee: 'Sneha Reddy', description: 'Automate monthly reports', target: '3 reports fully automated', progress: 40, dueDate: '2026-06-20', status: 'Overdue' },
-  { id: 6, employee: 'Ananya Gupta', description: 'Q2 campaign ROI > 300%', target: '₹3 return per ₹1 spent', progress: 55, dueDate: '2026-06-30', status: 'At Risk' },
-]
-
-const deptData = [
-  { dept: 'Engineering', avg: 4.6 }, { dept: 'Design', avg: 4.2 },
-  { dept: 'HR', avg: 3.8 }, { dept: 'Finance', avg: 4.0 },
-  { dept: 'Marketing', avg: 3.9 }, { dept: 'Sales', avg: 4.3 },
-]
-
-const ratingDist = [
-  { name: '5 Stars', value: 1, color: '#10b981' },
-  { name: '4-5 Stars', value: 3, color: '#3b82f6' },
-  { name: '3-4 Stars', value: 1, color: '#f59e0b' },
-  { name: 'Below 3', value: 0, color: '#ef4444' },
-]
-
 const goalStatusColor: Record<string, string> = {
   'On Track': 'badge-green', 'At Risk': 'badge-yellow', 'Completed': 'badge-blue', 'Overdue': 'badge-red'
 }
@@ -90,11 +61,31 @@ export default function Performance() {
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => { setReviews(mockReviews); setGoals(mockGoals); setLoading(false) }, 900)
-    return () => clearTimeout(t)
+    Promise.all([
+      api.get<Review[]>('/performance').catch(() => []),
+      api.get<Goal[]>('/goals').catch(() => []),
+    ]).then(([reviewData, goalData]) => {
+      setReviews(reviewData)
+      setGoals(goalData)
+    }).finally(() => setLoading(false))
   }, [])
 
   const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : '0'
+
+  const deptData = Object.entries(
+    reviews.reduce((acc, r) => {
+      if (!acc[r.dept]) acc[r.dept] = { sum: 0, count: 0 }
+      acc[r.dept].sum += r.rating; acc[r.dept].count += 1
+      return acc
+    }, {} as Record<string, { sum: number; count: number }>)
+  ).map(([dept, { sum, count }]) => ({ dept, avg: Math.round((sum / count) * 10) / 10 }))
+
+  const ratingDist = [
+    { name: '5 Stars', value: reviews.filter(r => r.rating >= 4.8).length, color: '#10b981' },
+    { name: '4-5 Stars', value: reviews.filter(r => r.rating >= 4 && r.rating < 4.8).length, color: '#3b82f6' },
+    { name: '3-4 Stars', value: reviews.filter(r => r.rating >= 3 && r.rating < 4).length, color: '#f59e0b' },
+    { name: 'Below 3', value: reviews.filter(r => r.rating < 3).length, color: '#ef4444' },
+  ]
 
   const addGoal = () => {
     const g: Goal = { id: Date.now(), employee: newGoal.employee, description: newGoal.description, target: newGoal.target, progress: 0, dueDate: newGoal.dueDate, status: 'On Track' }

@@ -3,6 +3,7 @@ import {
   CheckSquare, Clock, AlertCircle, TrendingUp, Plus, X,
   Search, Calendar, Edit2, Trash2
 } from 'lucide-react'
+import { api } from '../api/client'
 
 interface Task {
   id: number
@@ -24,18 +25,6 @@ const PRIORITIES = ['Critical', 'High', 'Medium', 'Low'] as const
 const STATUSES = ['To Do', 'In Progress', 'Review', 'Done', 'Blocked'] as const
 const EMPLOYEES = ['Rahul Sharma', 'Priya Patel', 'Amit Kumar', 'Sneha Reddy', 'Vikram Singh', 'Ananya Gupta', 'Rohan Mehta']
 const DEPARTMENTS = ['Engineering', 'Design', 'HR', 'Finance', 'Marketing', 'Sales']
-
-const mockTasks: Task[] = [
-  { id: 1, title: 'Implement OAuth 2.0 Login', description: 'Add Google and GitHub OAuth login to the platform', assignee: 'Rahul Sharma', assigneeAvatar: 'RS', department: 'Engineering', priority: 'High', status: 'In Progress', dueDate: '2026-06-25', createdDate: '2026-06-10', tags: ['Backend', 'Auth', 'Security'], progress: 65 },
-  { id: 2, title: 'Redesign Dashboard UI', description: 'Modernize the dashboard with the new design system components', assignee: 'Priya Patel', assigneeAvatar: 'PP', department: 'Design', priority: 'Medium', status: 'Review', dueDate: '2026-06-22', createdDate: '2026-06-08', tags: ['UI', 'Frontend'], progress: 90 },
-  { id: 3, title: 'Q2 Payroll Processing', description: 'Process salaries for all 120 employees for June 2026', assignee: 'Sneha Reddy', assigneeAvatar: 'SR', department: 'Finance', priority: 'Critical', status: 'To Do', dueDate: '2026-06-28', createdDate: '2026-06-18', tags: ['Payroll', 'Finance'], progress: 0 },
-  { id: 4, title: 'Hire 3 React Developers', description: 'Complete the hiring process for 3 senior React developers', assignee: 'Amit Kumar', assigneeAvatar: 'AK', department: 'HR', priority: 'High', status: 'In Progress', dueDate: '2026-07-10', createdDate: '2026-06-05', tags: ['Recruitment', 'Hiring'], progress: 40 },
-  { id: 5, title: 'Scale API Infrastructure', description: 'Migrate to Kubernetes and handle 1M+ requests per day', assignee: 'Vikram Singh', assigneeAvatar: 'VS', department: 'Engineering', priority: 'Critical', status: 'In Progress', dueDate: '2026-06-30', createdDate: '2026-06-01', tags: ['DevOps', 'K8s', 'AWS'], progress: 75 },
-  { id: 6, title: 'Launch Q3 Marketing Campaign', description: 'Prepare and launch the Q3 digital marketing campaign', assignee: 'Ananya Gupta', assigneeAvatar: 'AG', department: 'Marketing', priority: 'Medium', status: 'To Do', dueDate: '2026-07-01', createdDate: '2026-06-15', tags: ['Marketing', 'Campaign'], progress: 20 },
-  { id: 7, title: 'Annual Compliance Audit', description: 'Complete the annual HR compliance audit and documentation', assignee: 'Amit Kumar', assigneeAvatar: 'AK', department: 'HR', priority: 'High', status: 'Blocked', dueDate: '2026-06-20', createdDate: '2026-06-12', tags: ['Compliance', 'Legal'], progress: 30 },
-  { id: 8, title: 'Performance Review Reports', description: 'Generate and distribute Q2 performance review reports', assignee: 'Sneha Reddy', assigneeAvatar: 'SR', department: 'Finance', priority: 'Medium', status: 'Done', dueDate: '2026-06-15', createdDate: '2026-06-10', tags: ['HR', 'Reports'], progress: 100 },
-  { id: 9, title: 'API Documentation Update', description: 'Update Swagger docs for all new API endpoints', assignee: 'Rohan Mehta', assigneeAvatar: 'RM', department: 'Engineering', priority: 'Low', status: 'To Do', dueDate: '2026-07-05', createdDate: '2026-06-18', tags: ['Docs', 'API'], progress: 0 },
-]
 
 const priorityColors: Record<string, string> = {
   Critical: 'badge-red', High: 'badge-orange', Medium: 'badge-yellow', Low: 'badge-blue'
@@ -68,8 +57,10 @@ export default function Tasks() {
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => { setTasks(mockTasks); setLoading(false) }, 900)
-    return () => clearTimeout(t)
+    api.get<Task[]>('/tasks')
+      .then(data => setTasks(data))
+      .catch(() => setTasks([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const boardByCol = BOARD_COLUMNS.reduce((acc, col) => {

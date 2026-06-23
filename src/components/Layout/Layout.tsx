@@ -9,8 +9,12 @@ export default function Layout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
-      {/* Animated background */}
-      <div className="app-bg" />
+      {/* Animated 3D background */}
+      <div className="app-bg">
+        <div className="app-orb app-orb-1" />
+        <div className="app-orb app-orb-2" />
+        <div className="app-orb app-orb-3" />
+      </div>
 
       {/* Desktop sidebar — hidden on mobile via CSS */}
       <div className="desktop-sidebar">
