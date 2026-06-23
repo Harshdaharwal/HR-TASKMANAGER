@@ -306,7 +306,7 @@ export default function Dashboard() {
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
             {activity.map((item, idx) => (
-              <div key={item.id} style={{ display:'flex', alignItems:'flex-start', gap:'10px', paddingBottom: idx < activity.length-1 ? '10px' : 0, borderBottom: idx < activity.length-1 ? '1px solid #f1f5f9' : 'none' }}>
+              <div key={item.id} style={{ display:'flex', alignItems:'flex-start', gap:'10px', paddingBottom: idx < activity.length-1 ? '10px' : 0, borderBottom: idx < activity.length-1 ? '1px solid rgba(100,116,139,0.15)' : 'none' }}>
                 <div className={`icon-box ${ACT_COLORS[item.type]}`} style={{ width:'30px', height:'30px', borderRadius:'8px', flexShrink:0 }}>
                   {ACT_ICONS[item.type]}
                 </div>

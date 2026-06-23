@@ -151,7 +151,7 @@ export default function Expenses() {
                 <div className="flex items-start justify-between mb-3">
                   <div className={`icon-box ${s.iconCls}`}><s.icon size={20} /></div>
                 </div>
-                <p className="text-3xl font-bold text-white">{s.value}</p>
+                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
                 <p className="text-slate-400 text-sm mt-1">{s.label}</p>
               </div>
             ))}
@@ -191,13 +191,13 @@ export default function Expenses() {
                           <div className="flex items-center gap-2">
                             <div className="avatar text-xs">{e.employeeName.split(' ').map(n => n[0]).join('')}</div>
                             <div>
-                              <p className="text-white text-sm font-semibold">{e.employeeName}</p>
+                              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{e.employeeName}</p>
                               <p className="text-slate-500 text-xs">{e.department}</p>
                             </div>
                           </div>
                         </td>
                         <td><span className={`badge ${CAT_COLORS[e.category]}`}>{e.category}</span></td>
-                        <td className="text-white font-semibold">₹{e.amount.toLocaleString('en-IN')}</td>
+                        <td className="font-semibold" style={{ color: 'var(--text-primary)' }}>₹{e.amount.toLocaleString('en-IN')}</td>
                         <td className="text-slate-400 text-sm">{e.date}</td>
                         <td className="text-slate-400 text-sm max-w-xs truncate">{e.description}</td>
                         <td>
@@ -238,7 +238,7 @@ export default function Expenses() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Category Bar Chart */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Expenses by Category</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Expenses by Category</h3>
               <p className="text-slate-500 text-xs mb-4">Total claimed amount per category (INR)</p>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={BAR_DATA} layout="vertical" barSize={18}>
@@ -253,7 +253,7 @@ export default function Expenses() {
 
             {/* Monthly Trend Area Chart */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Monthly Expense Trend</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Monthly Expense Trend</h3>
               <p className="text-slate-500 text-xs mb-4">Total expenses claimed per month (INR)</p>
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={AREA_DATA}>
@@ -276,7 +276,7 @@ export default function Expenses() {
           {/* Department Report Table */}
           <div className="glass-card !p-0 overflow-hidden">
             <div className="p-5 border-b border-white/5">
-              <h3 className="text-white font-bold">Approved Expenses by Department</h3>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Approved Expenses by Department</h3>
               <p className="text-slate-500 text-xs mt-1">Summary of approved expenses per department — June 2026</p>
             </div>
             <div className="overflow-x-auto">
@@ -296,7 +296,7 @@ export default function Expenses() {
                       <td>
                         <div className="flex items-center gap-2">
                           <div className="icon-box icon-blue !w-8 !h-8"><Building2 size={14} /></div>
-                          <span className="text-white font-semibold text-sm">{d.dept}</span>
+                          <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{d.dept}</span>
                         </div>
                       </td>
                       <td className="text-slate-300">₹{d.total.toLocaleString('en-IN')}</td>
@@ -327,7 +327,7 @@ export default function Expenses() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">New Expense Claim</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>New Expense Claim</h2>
               <button className="btn btn-ghost !p-2" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '16px' }}>

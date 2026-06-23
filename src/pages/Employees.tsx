@@ -330,11 +330,11 @@ function EmployeeModal({ employee, onClose, onSave }: {
   return (
     <div className="modal-overlay" style={{ zIndex: 500 }}>
       <div className="modal-box" style={{ width: '100%', maxWidth: 680, maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)', position: 'sticky', top: 0, background: 'rgba(15,23,42,0.98)', zIndex: 1 }}>
-          <h2 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 18, margin: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 16px', borderBottom: '1px solid rgba(100,116,139,0.2)', position: 'sticky', top: 0, background: 'var(--glass)', zIndex: 1 }}>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18, margin: 0 }}>
             {employee ? 'Edit Employee' : 'Add New Employee'}
           </h2>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#94a3b8' }}>
+          <button onClick={onClose} style={{ background: 'rgba(100,116,139,0.12)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#94a3b8' }}>
             <X size={18} />
           </button>
         </div>
@@ -446,9 +446,9 @@ function DeleteModal({ name, onClose, onConfirm }: { name: string; onClose: () =
         }}>
           <Trash2 size={24} color="#ef4444" />
         </div>
-        <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>Delete Employee</h3>
+        <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18, margin: '0 0 8px' }}>Delete Employee</h3>
         <p style={{ color: '#94a3b8', fontSize: 14, margin: '0 0 24px', lineHeight: 1.6 }}>
-          Are you sure you want to remove <strong style={{ color: '#e2e8f0' }}>{name}</strong>?
+          Are you sure you want to remove <strong style={{ color: 'var(--text-primary)' }}>{name}</strong>?
           This action cannot be undone.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
@@ -618,17 +618,16 @@ export default function Employees() {
                 <Icon size={20} />
               </div>
             </div>
-            <p style={{ fontSize: 28, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>{value}</p>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
             <p style={{ fontSize: 13, color: '#94a3b8', margin: '4px 0 0' }}>{label}</p>
           </div>
         ))}
       </div>
 
       {/* ── filter bar ── */}
-      <div style={{
+      <div className="glass-card" style={{
         display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
-        background: 'rgba(255,255,255,0.04)', borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.08)', padding: '14px 18px',
+        padding: '14px 18px',
       }}>
         <div className="search-box" style={{ flex: '1 1 100%', minWidth: 180 }}>
           <Search size={15} color="#64748b" />
@@ -684,7 +683,7 @@ export default function Employees() {
                   padding: '14px 18px', textAlign: 'left',
                   fontSize: 11, fontWeight: 700, color: '#64748b',
                   textTransform: 'uppercase', letterSpacing: '0.08em',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  borderBottom: '1px solid rgba(100,116,139,0.2)',
                 }}>
                   {h}
                 </th>
@@ -722,7 +721,7 @@ export default function Employees() {
                             {emp.avatar || initials(emp.name)}
                           </div>
                           <div>
-                            <p style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 14, margin: 0 }}
+                            <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14, margin: 0 }}
                               className="hover-text">{emp.name}</p>
                             <p style={{ color: '#64748b', fontSize: 12, margin: '2px 0 0' }}>{emp.employeeId}</p>
                           </div>
@@ -735,7 +734,7 @@ export default function Employees() {
                       </td>
 
                       {/* designation */}
-                      <td style={{ padding: '14px 18px', color: '#cbd5e1', fontSize: 13 }}>{emp.designation}</td>
+                      <td style={{ padding: '14px 18px', color: '#64748b', fontSize: 13 }}>{emp.designation}</td>
 
                       {/* contact */}
                       <td style={{ padding: '14px 18px' }}>
@@ -763,7 +762,7 @@ export default function Employees() {
                       <td style={{ padding: '14px 18px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <DollarSign size={12} color="#64748b" />
-                          <span style={{ color: '#e2e8f0', fontSize: 13, fontWeight: 600 }}>
+                          <span style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 600 }}>
                             {formatINR(emp.salary)}
                           </span>
                         </div>

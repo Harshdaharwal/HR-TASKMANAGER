@@ -157,7 +157,7 @@ export default function Assets() {
             <div className="flex items-start justify-between mb-3">
               <div className={`icon-box ${s.iconCls}`}><s.icon size={20} /></div>
             </div>
-            <p className="text-3xl font-bold text-white">{s.value}</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
             <p className="text-slate-400 text-sm mt-1">{s.label}</p>
           </div>
         ))}
@@ -217,7 +217,7 @@ export default function Assets() {
                       <td className="font-mono text-xs text-slate-300">{a.assetId}</td>
                       <td>
                         <div>
-                          <p className="text-white font-semibold text-sm">{a.name}</p>
+                          <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{a.name}</p>
                           <p className="text-slate-500 text-xs">{a.brand}</p>
                         </div>
                       </td>
@@ -231,7 +231,7 @@ export default function Assets() {
                         {a.assignedToName ? (
                           <div className="flex items-center gap-2">
                             <div className="avatar">{initials(a.assignedToName)}</div>
-                            <span className="text-sm text-white">{a.assignedToName}</span>
+                            <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{a.assignedToName}</span>
                           </div>
                         ) : (
                           <span className="text-slate-500 text-xs">Unassigned</span>
@@ -274,7 +274,7 @@ export default function Assets() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Add New Asset</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Add New Asset</h2>
               <button className="btn btn-ghost !p-2" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div className="grid grid-cols-2 gap-4">

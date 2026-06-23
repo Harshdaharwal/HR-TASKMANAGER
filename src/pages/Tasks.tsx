@@ -127,7 +127,7 @@ export default function Tasks() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>{s.label}</p>
-                <p style={{ color: 'white', fontSize: '32px', fontWeight: 700 }}>{s.value}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 700 }}>{s.value}</p>
               </div>
               <div className={`icon-box icon-${s.color}`}>{s.icon}</div>
             </div>
@@ -150,7 +150,7 @@ export default function Tasks() {
             {BOARD_COLUMNS.map(col => (
               <div key={col} className="kanban-col" style={{ width: '260px', minWidth: '260px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>{col}</h3>
+                  <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px' }}>{col}</h3>
                   <span className={`badge ${statusColors[col]}`}>{boardByCol[col]?.length || 0}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -159,7 +159,7 @@ export default function Tasks() {
                   ) : boardByCol[col]?.map(task => (
                     <div key={task.id} className="kanban-card touch-card" style={{ borderLeft: `3px solid ${priorityBorderColors[task.priority]}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <p style={{ color: 'white', fontWeight: 600, fontSize: '13px', flex: 1, marginRight: '8px' }}>{task.title}</p>
+                        <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px', flex: 1, marginRight: '8px' }}>{task.title}</p>
                         <span className={`badge ${priorityColors[task.priority]}`} style={{ fontSize: '10px', flexShrink: 0 }}>{task.priority}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
@@ -174,7 +174,7 @@ export default function Tasks() {
                       <div style={{ marginBottom: '6px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
                           <span style={{ color: 'var(--slate-500)', fontSize: '10px' }}>Progress</span>
-                          <span style={{ color: 'white', fontSize: '10px', fontWeight: 600 }}>{task.progress}%</span>
+                          <span style={{ color: 'var(--text-primary)', fontSize: '10px', fontWeight: 600 }}>{task.progress}%</span>
                         </div>
                         <div className="progress-bar" style={{ height: '4px' }}>
                           <div className="progress-fill" style={{ width: `${task.progress}%`, background: task.progress === 100 ? 'linear-gradient(90deg,#059669,#10b981)' : 'linear-gradient(90deg,#1d4ed8,#3b82f6)' }} />
@@ -205,7 +205,7 @@ export default function Tasks() {
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
             <div className="search-box" style={{ flex: 1, minWidth: '200px' }}>
               <Search size={16} style={{ color: 'var(--slate-400)' }} />
-              <input placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: 'white', width: '100%' }} />
+              <input placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-primary)', width: '100%' }} />
             </div>
             <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
               <option value="All">All Status</option>
@@ -234,7 +234,7 @@ export default function Tasks() {
                   <tr key={task.id}>
                     <td>
                       <div>
-                        <p style={{ color: 'white', fontWeight: 500 }}>{task.title}</p>
+                        <p style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{task.title}</p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
                           {task.tags.slice(0, 2).map(tag => <span key={tag} className="badge badge-gray" style={{ fontSize: '10px' }}>{tag}</span>)}
                         </div>
@@ -280,7 +280,7 @@ export default function Tasks() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>{editTask ? 'Edit Task' : 'Create New Task'}</h2>
+              <h2 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '18px' }}>{editTask ? 'Edit Task' : 'Create New Task'}</h2>
               <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>

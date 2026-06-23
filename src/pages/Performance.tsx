@@ -141,7 +141,7 @@ export default function Performance() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                       <div className="avatar-lg" style={{ width: '44px', height: '44px', fontSize: '14px' }}>{r.avatar}</div>
                       <div>
-                        <p style={{ color: 'white', fontWeight: 600 }}>{r.name}</p>
+                        <p style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{r.name}</p>
                         <p style={{ color: 'var(--slate-400)', fontSize: '13px' }}>{r.dept} · {r.period}</p>
                       </div>
                     </div>
@@ -209,7 +209,7 @@ export default function Performance() {
                   </defs>
                 </svg>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: 'white', fontSize: '26px', fontWeight: 800 }}>{avgRating}</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '26px', fontWeight: 800 }}>{avgRating}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '2px' }}>
@@ -218,13 +218,13 @@ export default function Performance() {
               <p style={{ color: 'var(--slate-500)', fontSize: '12px', marginTop: '8px' }}>Based on {reviews.length} reviews</p>
             </div>
             <div className="glass-card fade-up">
-              <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '12px' }}>Top Performers</h3>
+              <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '12px' }}>Top Performers</h3>
               {[...reviews].sort((a, b) => b.rating - a.rating).slice(0, 3).map((r, i) => (
                 <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                   <span style={{ color: (['#f59e0b', '#9ca3af', '#b45309'] as string[])[i] || 'var(--slate-400)', fontWeight: 700, width: '20px', fontSize: '14px' }}>#{i + 1}</span>
                   <div className="avatar" style={{ width: '32px', height: '32px', fontSize: '11px' }}>{r.avatar}</div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ color: 'white', fontSize: '13px', fontWeight: 500 }}>{r.name}</p>
+                    <p style={{ color: 'var(--text-primary)', fontSize: '13px', fontWeight: 500 }}>{r.name}</p>
                     <p style={{ color: 'var(--slate-500)', fontSize: '11px' }}>{r.dept}</p>
                   </div>
                   <span style={{ color: '#f59e0b', fontWeight: 700 }}>{r.rating}</span>
@@ -238,7 +238,7 @@ export default function Performance() {
       {/* GOALS TAB */}
       {tab === 'goals' && (
         <div className="glass-card fade-up">
-          <h2 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Team Goals</h2>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Team Goals</h2>
           <div style={{ overflowX: 'auto' }}>
             <table className="premium-table" style={{ width: '100%' }}>
               <thead>
@@ -251,7 +251,7 @@ export default function Performance() {
                   ))
                 ) : goals.map(g => (
                   <tr key={g.id}>
-                    <td style={{ color: 'white', fontWeight: 500 }}>{g.employee}</td>
+                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{g.employee}</td>
                     <td style={{ color: 'var(--slate-300)' }}>{g.description}</td>
                     <td style={{ color: 'var(--slate-400)', fontSize: '13px' }}>{g.target}</td>
                     <td style={{ minWidth: '140px' }}>
@@ -259,7 +259,7 @@ export default function Performance() {
                         <div className="progress-bar" style={{ flex: 1 }}>
                           <div className="progress-fill" style={{ width: `${g.progress}%`, background: g.progress === 100 ? 'linear-gradient(90deg,#059669,#10b981)' : g.progress >= 60 ? 'linear-gradient(90deg,#1d4ed8,#3b82f6)' : 'linear-gradient(90deg,#d97706,#f59e0b)' }} />
                         </div>
-                        <span style={{ color: 'white', fontSize: '12px', fontWeight: 600, minWidth: '32px' }}>{g.progress}%</span>
+                        <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600, minWidth: '32px' }}>{g.progress}%</span>
                       </div>
                     </td>
                     <td style={{ color: 'var(--slate-400)', fontSize: '13px' }}>{g.dueDate}</td>
@@ -276,7 +276,7 @@ export default function Performance() {
       {tab === 'analytics' && (
         <div className="stat-grid-auto" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div className="glass-card fade-up">
-            <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Dept Average Ratings</h3>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Dept Average Ratings</h3>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={deptData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -288,7 +288,7 @@ export default function Performance() {
             </ResponsiveContainer>
           </div>
           <div className="glass-card fade-up">
-            <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Rating Distribution</h3>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Rating Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={ratingDist} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
@@ -300,13 +300,13 @@ export default function Performance() {
             </ResponsiveContainer>
           </div>
           <div className="glass-card fade-up">
-            <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Top 5 Performers</h3>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Top 5 Performers</h3>
             {topPerformers.map((r, i) => (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: i === 0 ? 'linear-gradient(135deg,#f59e0b,#d97706)' : i === 1 ? 'linear-gradient(135deg,#9ca3af,#6b7280)' : i === 2 ? 'linear-gradient(135deg,#b45309,#92400e)' : 'rgba(255,255,255,0.1)', fontWeight: 700, fontSize: '13px', color: 'white', flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: i === 0 ? 'linear-gradient(135deg,#f59e0b,#d97706)' : i === 1 ? 'linear-gradient(135deg,#9ca3af,#6b7280)' : i === 2 ? 'linear-gradient(135deg,#b45309,#92400e)' : 'rgba(255,255,255,0.1)', fontWeight: 700, fontSize: '13px', color: i < 3 ? 'white' : 'var(--text-primary)', flexShrink: 0 }}>{i + 1}</div>
                 <div className="avatar" style={{ width: '36px', height: '36px', fontSize: '12px' }}>{r.avatar}</div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ color: 'white', fontWeight: 500, fontSize: '14px' }}>{r.name}</p>
+                  <p style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '14px' }}>{r.name}</p>
                   <p style={{ color: 'var(--slate-500)', fontSize: '12px' }}>{r.dept}</p>
                 </div>
                 <StarDisplay rating={r.rating} />
@@ -314,7 +314,7 @@ export default function Performance() {
             ))}
           </div>
           <div className="glass-card fade-up">
-            <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Team KPI Summary</h3>
+            <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Team KPI Summary</h3>
             {[
               { label: 'Reviews Completed', value: `${reviews.filter(r => r.status === 'Completed').length}/${reviews.length}`, color: 'badge-green' },
               { label: 'Goals On Track', value: `${goals.filter(g => g.status === 'On Track').length}/${goals.length}`, color: 'badge-blue' },
@@ -340,7 +340,7 @@ export default function Performance() {
         <div className="modal-overlay" onClick={() => setShowGoalModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>Add New Goal</h2>
+              <h2 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '18px' }}>Add New Goal</h2>
               <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowGoalModal(false)}><X size={18} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>

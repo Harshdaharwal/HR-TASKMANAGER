@@ -138,7 +138,7 @@ export default function CRM() {
             <div className="flex items-start justify-between mb-3">
               <div className={`icon-box ${s.iconCls}`}><s.icon size={20} /></div>
             </div>
-            <p className="text-3xl font-bold text-white">{s.value}</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
             <p className="text-slate-400 text-sm mt-1">{s.label}</p>
           </div>
         ))}
@@ -179,7 +179,7 @@ export default function CRM() {
                           <div className="flex items-center gap-2">
                             <div className="avatar">{initials(l.name)}</div>
                             <div>
-                              <p className="text-white font-semibold text-sm">{l.name}</p>
+                              <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{l.name}</p>
                               <p className="text-slate-500 text-xs">{l.company}</p>
                             </div>
                           </div>
@@ -208,8 +208,8 @@ export default function CRM() {
                             </button>
                           )}
                         </td>
-                        <td className="text-white font-semibold">₹{l.value.toLocaleString('en-IN')}</td>
-                        <td className="text-slate-300 text-sm">{l.assignedTo}</td>
+                        <td className="font-semibold" style={{ color: 'var(--text-primary)' }}>₹{l.value.toLocaleString('en-IN')}</td>
+                        <td className="text-slate-400 text-sm">{l.assignedTo}</td>
                         <td className="text-slate-400 text-xs">{l.lastFollowUp}</td>
                         <td>
                           <div className="flex gap-2">
@@ -253,7 +253,7 @@ export default function CRM() {
                       <div className="flex items-center gap-2">
                         <div className="avatar">{initials(l.name)}</div>
                         <div>
-                          <p className="text-white font-semibold text-sm">{l.name}</p>
+                          <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{l.name}</p>
                           <p className="text-slate-500 text-xs">{l.company}</p>
                         </div>
                       </div>
@@ -266,7 +266,7 @@ export default function CRM() {
                     </td>
                     <td><span className={`badge ${SOURCE_COLORS[l.source]}`}>{l.source}</span></td>
                     <td className="text-green-400 font-bold">₹{l.value.toLocaleString('en-IN')}</td>
-                    <td className="text-slate-300 text-sm">{l.assignedTo}</td>
+                    <td className="text-slate-400 text-sm">{l.assignedTo}</td>
                     <td className="text-slate-400 text-xs">{l.lastFollowUp}</td>
                     <td className="text-slate-400 text-xs max-w-xs truncate">{l.notes}</td>
                   </tr>
@@ -293,7 +293,7 @@ export default function CRM() {
                     <div>
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PIPELINE_COL_COLORS[col] }} />
-                        <span className="text-white text-sm font-bold">{col}</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{col}</span>
                       </div>
                       <p className="text-slate-500 text-xs mt-0.5">₹{(colValue / 1000).toFixed(0)}K</p>
                     </div>
@@ -307,7 +307,7 @@ export default function CRM() {
                           <div className="flex items-center gap-2">
                             <div className="avatar !w-7 !h-7 text-xs">{initials(l.name)}</div>
                             <div>
-                              <p className="text-white text-xs font-semibold leading-tight">{l.name}</p>
+                              <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>{l.name}</p>
                               <p className="text-slate-500 text-xs">{l.company}</p>
                             </div>
                           </div>
@@ -338,7 +338,7 @@ export default function CRM() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Add New Lead</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Add New Lead</h2>
               <button className="btn btn-ghost !p-2" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div className="grid grid-cols-2 gap-4">

@@ -92,7 +92,7 @@ export default function Payroll() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>Gross Payroll</p>
-              <p style={{ color: 'white', fontSize: '28px', fontWeight: 700 }}>{toL(gross)}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '28px', fontWeight: 700 }}>{toL(gross)}</p>
               <p style={{ color: 'var(--slate-400)', fontSize: '12px', marginTop: '4px' }}>Total before deductions</p>
             </div>
             <div className="icon-box icon-blue"><DollarSign size={20} /></div>
@@ -102,7 +102,7 @@ export default function Payroll() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>Net Payroll</p>
-              <p style={{ color: 'white', fontSize: '28px', fontWeight: 700 }}>{toL(net)}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '28px', fontWeight: 700 }}>{toL(net)}</p>
               <p style={{ color: 'var(--slate-400)', fontSize: '12px', marginTop: '4px' }}>After all deductions</p>
             </div>
             <div className="icon-box icon-green"><TrendingUp size={20} /></div>
@@ -112,7 +112,7 @@ export default function Payroll() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>Total Deductions</p>
-              <p style={{ color: 'white', fontSize: '28px', fontWeight: 700 }}>{toL(deductions)}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '28px', fontWeight: 700 }}>{toL(deductions)}</p>
               <p style={{ color: 'var(--slate-400)', fontSize: '12px', marginTop: '4px' }}>PF + Tax</p>
             </div>
             <div className="icon-box icon-orange"><AlertCircle size={20} /></div>
@@ -122,7 +122,7 @@ export default function Payroll() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>Pending Payments</p>
-              <p style={{ color: 'white', fontSize: '28px', fontWeight: 700 }}>{toL(pending)}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '28px', fontWeight: 700 }}>{toL(pending)}</p>
               <p style={{ color: 'var(--slate-400)', fontSize: '12px', marginTop: '4px' }}>{data.filter(e => e.status === 'Pending').length} employees</p>
             </div>
             <div className="icon-box icon-purple"><Clock size={20} /></div>
@@ -133,7 +133,7 @@ export default function Payroll() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px' }}>
         {/* Payroll Table */}
         <div className="glass-card fade-up stagger-2">
-          <h2 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Employee Payroll — {selectedMonth}</h2>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Employee Payroll — {selectedMonth}</h2>
           <div style={{ overflowX: 'auto' }}>
             <table className="premium-table" style={{ width: '100%' }}>
               <thead>
@@ -165,7 +165,7 @@ export default function Payroll() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div className="avatar" style={{ width: '34px', height: '34px', fontSize: '12px' }}>{emp.avatar}</div>
-                        <span style={{ color: 'white', fontWeight: 500 }}>{emp.name}</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{emp.name}</span>
                       </div>
                     </td>
                     <td><span className="badge badge-blue">{emp.dept}</span></td>
@@ -175,7 +175,7 @@ export default function Payroll() {
                     <td style={{ color: '#f87171' }}>₹{emp.pf.toLocaleString()}</td>
                     <td style={{ color: '#f87171' }}>₹{emp.tax.toLocaleString()}</td>
                     <td style={{ color: '#34d399' }}>₹{emp.bonus.toLocaleString()}</td>
-                    <td style={{ color: 'white', fontWeight: 700 }}>₹{emp.netSalary.toLocaleString()}</td>
+                    <td style={{ color: 'var(--text-primary)', fontWeight: 700 }}>₹{emp.netSalary.toLocaleString()}</td>
                     <td>{statusBadge(emp.status)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -196,7 +196,7 @@ export default function Payroll() {
 
         {/* Department Chart */}
         <div className="glass-card fade-up stagger-3">
-          <h2 style={{ color: 'white', fontWeight: 600, marginBottom: '16px' }}>Dept-wise Payroll (₹L)</h2>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '16px' }}>Dept-wise Payroll (₹L)</h2>
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={deptChartData} layout="vertical" margin={{ left: 0, right: 16 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -213,7 +213,7 @@ export default function Payroll() {
             {deptChartData.map(d => (
               <div key={d.dept} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'var(--slate-400)', fontSize: '13px' }}>{d.dept}</span>
-                <span style={{ color: 'white', fontWeight: 600 }}>₹{d.amount}L</span>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>₹{d.amount}L</span>
               </div>
             ))}
           </div>
@@ -271,7 +271,7 @@ export default function Payroll() {
                 ] as [string, number][]).map(([label, val]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ color: 'var(--slate-400)', fontSize: '13px' }}>{label}</span>
-                    <span style={{ color: 'white', fontWeight: 500 }}>₹{val.toLocaleString()}</span>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>₹{val.toLocaleString()}</span>
                   </div>
                 ))}
                 <div style={{ borderTop: '1px solid rgba(16,185,129,0.3)', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
@@ -300,7 +300,7 @@ export default function Payroll() {
             {/* Net Salary Highlight */}
             <div style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.2) 0%, rgba(124,58,237,0.2) 100%)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '10px', padding: '20px', textAlign: 'center', marginBottom: '20px' }}>
               <p style={{ color: 'var(--slate-400)', fontSize: '13px' }}>NET SALARY PAYABLE</p>
-              <p style={{ color: 'white', fontSize: '36px', fontWeight: 800, marginTop: '4px' }}>₹{payslipEmp.netSalary.toLocaleString()}</p>
+              <p style={{ color: 'var(--text-primary)', fontSize: '36px', fontWeight: 800, marginTop: '4px' }}>₹{payslipEmp.netSalary.toLocaleString()}</p>
               <p style={{ color: 'var(--slate-400)', fontSize: '12px', marginTop: '4px' }}>For the month of {selectedMonth}</p>
             </div>
 

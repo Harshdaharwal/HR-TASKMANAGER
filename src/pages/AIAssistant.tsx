@@ -172,7 +172,7 @@ export default function AIAssistant() {
               <div className="flex items-start gap-2">
                 <MessageSquare size={14} className="text-slate-500 shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-slate-200 text-xs font-semibold truncate">{c.title}</p>
+                  <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{c.title}</p>
                   <p className="text-slate-500 text-xs truncate mt-0.5">{c.lastMessage}</p>
                 </div>
                 <button onClick={e => deleteConversation(c.id, e)}
@@ -190,7 +190,7 @@ export default function AIAssistant() {
               AI
             </div>
             <div>
-              <p className="text-white text-xs font-bold">HR AI Assistant</p>
+              <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>HR AI Assistant</p>
               <p className="text-slate-500 text-xs">Powered by Claude</p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function AIAssistant() {
             <div className="w-3 h-3 rounded-full bg-green-500 border-2 border-[#0d1425] absolute -bottom-0.5 -right-0.5" />
           </div>
           <div>
-            <p className="text-white font-bold text-sm">HR AI Assistant</p>
+            <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>HR AI Assistant</p>
             <p className="text-green-400 text-xs">Online — Ready to help</p>
           </div>
           <div className="ml-auto">
@@ -226,7 +226,7 @@ export default function AIAssistant() {
                 style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4)', boxShadow: '0 0 40px rgba(59,130,246,0.3)' }}>
                 AI
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">How can I help you today?</h2>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>How can I help you today?</h2>
               <p className="text-slate-500 text-sm mb-8 text-center max-w-sm">
                 Ask me anything about your HR data — leaves, payroll, attendance, recruitment, and more.
               </p>
@@ -238,7 +238,7 @@ export default function AIAssistant() {
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center mb-2" style={{ background: s.color + '22', border: `1px solid ${s.color}44` }}>
                       <s.icon size={14} style={{ color: s.color }} />
                     </div>
-                    <p className="text-slate-300 text-xs font-medium leading-snug">{s.text}</p>
+                    <p className="text-xs font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>{s.text}</p>
                     <ChevronRight size={12} className="text-slate-600 mt-1" />
                   </button>
                 ))}

@@ -124,10 +124,10 @@ function NewLeaveModal({ onClose, onSubmit }: {
       <div className="modal-box" style={{ width: '100%', maxWidth: 520 }}>
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '20px 24px 16px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+          padding: '20px 24px 16px', borderBottom: '1px solid rgba(100,116,139,0.2)',
         }}>
-          <h2 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 18, margin: 0 }}>New Leave Request</h2>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#94a3b8' }}>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18, margin: 0 }}>New Leave Request</h2>
+          <button onClick={onClose} style={{ background: 'rgba(100,116,139,0.12)', border: 'none', borderRadius: 8, padding: 6, cursor: 'pointer', color: '#94a3b8' }}>
             <X size={18} />
           </button>
         </div>
@@ -244,7 +244,7 @@ function LeaveCard({ leave, onApprove, onReject }: {
             {initials(leave.employeeName)}
           </div>
           <div>
-            <p style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 15, margin: 0 }}>{leave.employeeName}</p>
+            <p style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 15, margin: 0 }}>{leave.employeeName}</p>
             <p style={{ color: '#64748b', fontSize: 12, margin: '3px 0 0' }}>{leave.department}</p>
           </div>
         </div>
@@ -261,8 +261,8 @@ function LeaveCard({ leave, onApprove, onReject }: {
       </div>
 
       {/* date range */}
-      <div style={{
-        background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px',
+      <div className="glass-card" style={{
+        borderRadius: 10, padding: '10px 14px',
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
         <Calendar size={14} color={typeColor} />
@@ -340,7 +340,7 @@ function BalanceTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
                   <div className={`icon-box ${iconCls}`} style={{ marginBottom: 10 }}>
                     <Icon size={20} />
                   </div>
-                  <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 15, margin: 0 }}>{type}</h3>
+                  <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 15, margin: 0 }}>{type}</h3>
                   <p style={{ color: '#64748b', fontSize: 12, margin: '4px 0 0' }}>{total} days allocated</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -367,12 +367,12 @@ function BalanceTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 {[
-                  { label: 'Total', value: total, c: '#e2e8f0' },
+                  { label: 'Total', value: total, c: 'var(--text-primary)' },
                   { label: 'Used', value: used, c: '#ef4444' },
                   { label: 'Left', value: remaining, c: '#10b981' },
                 ].map(({ label, value, c }) => (
-                  <div key={label} style={{
-                    background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 8px', textAlign: 'center',
+                  <div key={label} className="glass-card" style={{
+                    borderRadius: 10, padding: '10px 8px', textAlign: 'center',
                   }}>
                     <p style={{ color: c, fontWeight: 700, fontSize: 20, margin: 0 }}>{value}</p>
                     <p style={{ color: '#64748b', fontSize: 11, margin: '3px 0 0' }}>{label}</p>
@@ -388,7 +388,7 @@ function BalanceTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
       <div className="glass-card" style={{ padding: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
           <div className="icon-box icon-blue"><AlertTriangle size={18} /></div>
-          <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 16, margin: 0 }}>Leave Policy Summary</h3>
+          <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 16, margin: 0 }}>Leave Policy Summary</h3>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 12 }}>
           {[
@@ -451,23 +451,22 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* navigation */}
-      <div style={{
+      <div className="glass-card" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'rgba(255,255,255,0.04)', borderRadius: 16,
-        border: '1px solid rgba(255,255,255,0.08)', padding: '14px 20px',
+        padding: '14px 20px',
       }}>
-        <button onClick={prevMonth} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
+        <button onClick={prevMonth} style={{ background: 'rgba(100,116,139,0.12)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
           <ChevronLeft size={18} />
         </button>
         <div style={{ textAlign: 'center' }}>
-          <h3 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 18, margin: 0 }}>
+          <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 18, margin: 0 }}>
             {viewDate.toLocaleString('en-IN', { month: 'long', year: 'numeric' })}
           </h3>
           <p style={{ color: '#64748b', fontSize: 12, margin: '3px 0 0' }}>
             {Object.values(leaveMap).flat().length} leaves this month
           </p>
         </div>
-        <button onClick={nextMonth} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
+        <button onClick={nextMonth} style={{ background: 'rgba(100,116,139,0.12)', border: 'none', borderRadius: 8, padding: 8, cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
           <ChevronRight size={18} />
         </button>
       </div>
@@ -521,7 +520,7 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
                     : isToday
                       ? 'rgba(59,130,246,0.08)'
                       : dayLeaves.length > 0
-                        ? 'rgba(255,255,255,0.04)'
+                        ? 'rgba(100,116,139,0.08)'
                         : 'transparent',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
@@ -529,7 +528,7 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
               >
                 <span style={{
                   fontSize: 13, fontWeight: isToday ? 800 : 500,
-                  color: isToday ? '#3b82f6' : isWeekend ? '#64748b' : '#e2e8f0',
+                  color: isToday ? '#3b82f6' : isWeekend ? '#64748b' : 'var(--text-primary)',
                 }}>
                   {day}
                 </span>
@@ -557,10 +556,10 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
       {selectedDay && (
         <div className="glass-card fade-up" style={{ padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <h4 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 15, margin: 0 }}>
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 15, margin: 0 }}>
               Leaves on {new Date(selectedDay).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </h4>
-            <button onClick={() => setSelectedDay(null)} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', color: '#94a3b8' }}>
+            <button onClick={() => setSelectedDay(null)} style={{ background: 'rgba(100,116,139,0.12)', border: 'none', borderRadius: 6, padding: 5, cursor: 'pointer', color: '#94a3b8' }}>
               <X size={14} />
             </button>
           </div>
@@ -571,9 +570,9 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
               {selectedLeaves.map(l => {
                 const LeaveIcon = LEAVE_TYPE_ICONS[l.leaveType];
                 return (
-                  <div key={l.id} style={{
+                  <div key={l.id} className="glass-card" style={{
                     display: 'flex', alignItems: 'center', gap: 12,
-                    background: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: '10px 14px',
+                    borderRadius: 10, padding: '10px 14px',
                   }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: 8, flexShrink: 0,
@@ -584,7 +583,7 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
                       <LeaveIcon size={15} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 14, margin: 0 }}>{l.employeeName}</p>
+                      <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14, margin: 0 }}>{l.employeeName}</p>
                       <p style={{ color: '#64748b', fontSize: 12, margin: '2px 0 0' }}>{l.department} · {l.leaveType} Leave · {l.days} day(s)</p>
                     </div>
                     <span className={`badge ${STATUS_BADGE[l.status]}`}>{l.status}</span>
@@ -707,7 +706,7 @@ export default function LeaveManagement() {
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
               <div className={`icon-box ${iconCls}`}><Icon size={18} /></div>
             </div>
-            <p style={{ fontSize: 28, fontWeight: 800, color: '#f1f5f9', margin: 0 }}>{value}</p>
+            <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{value}</p>
             <p style={{ fontSize: 13, color: '#94a3b8', margin: '4px 0 0' }}>{label}</p>
           </div>
         ))}
@@ -730,10 +729,9 @@ export default function LeaveManagement() {
       {activeTab === 'requests' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* filter row */}
-          <div style={{
+          <div className="glass-card" style={{
             display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center',
-            background: 'rgba(255,255,255,0.04)', borderRadius: 16,
-            border: '1px solid rgba(255,255,255,0.08)', padding: '14px 18px',
+            padding: '14px 18px',
           }}>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {['All', 'Pending', 'Approved', 'Rejected'].map(s => (
@@ -743,7 +741,7 @@ export default function LeaveManagement() {
                   style={{
                     padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
                     fontSize: 12, fontWeight: 600, transition: 'all 0.15s',
-                    background: statusFilter === s ? 'linear-gradient(135deg,#3b82f6,#6366f1)' : 'rgba(255,255,255,0.06)',
+                    background: statusFilter === s ? 'linear-gradient(135deg,#3b82f6,#6366f1)' : 'rgba(100,116,139,0.1)',
                     color: statusFilter === s ? '#fff' : '#94a3b8',
                     boxShadow: statusFilter === s ? '0 4px 12px rgba(59,130,246,0.4)' : 'none',
                   }}

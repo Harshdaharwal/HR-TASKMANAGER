@@ -69,7 +69,7 @@ function TicketCard({ ticket, onClick }: { ticket: HelpTicket; onClick: () => vo
         </div>
       </div>
 
-      <h3 className="text-white font-semibold text-sm mb-2 leading-snug">{ticket.subject}</h3>
+      <h3 className="font-semibold text-sm mb-2 leading-snug" style={{ color: 'var(--text-primary)' }}>{ticket.subject}</h3>
       <p className="text-slate-400 text-xs leading-relaxed mb-4 line-clamp-2">{ticket.description}</p>
 
       <div className="flex items-center justify-between">
@@ -181,7 +181,7 @@ export default function Helpdesk() {
             <div className="flex items-start justify-between mb-3">
               <div className={`icon-box ${s.iconCls}`}><s.icon size={20} /></div>
             </div>
-            <p className="text-3xl font-bold text-white">{s.value}</p>
+            <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
             <p className="text-slate-300 text-sm font-semibold mt-1">{s.label}</p>
             <p className="text-slate-500 text-xs">{s.sub}</p>
           </div>
@@ -243,7 +243,7 @@ export default function Helpdesk() {
                   <span className={`badge ${STATUS_COLORS[selectedTicket.status]}`}>{selectedTicket.status}</span>
                   {selectedTicket.overdue && <span className="badge badge-red"><AlertTriangle size={9} /> Overdue</span>}
                 </div>
-                <h2 className="text-lg font-bold text-white">{selectedTicket.subject}</h2>
+                <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{selectedTicket.subject}</h2>
               </div>
               <button className="btn btn-ghost !p-2" onClick={() => setSelectedTicket(null)}><X size={18} /></button>
             </div>
@@ -258,22 +258,22 @@ export default function Helpdesk() {
                   <p className="form-label">Reporter</p>
                   <div className="flex items-center gap-2 mt-2">
                     <div className="avatar">{initials(selectedTicket.reporterName)}</div>
-                    <span className="text-white text-sm">{selectedTicket.reporterName}</span>
+                    <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{selectedTicket.reporterName}</span>
                   </div>
                 </div>
                 <div className="glass-card !p-4">
                   <p className="form-label">Assigned To</p>
-                  <p className="text-white text-sm mt-2">{selectedTicket.assignedTo}</p>
+                  <p className="text-sm mt-2" style={{ color: 'var(--text-primary)' }}>{selectedTicket.assignedTo}</p>
                 </div>
                 <div className="glass-card !p-4">
                   <p className="form-label">Created</p>
-                  <p className="text-white text-sm mt-2">{selectedTicket.createdAt}</p>
+                  <p className="text-sm mt-2" style={{ color: 'var(--text-primary)' }}>{selectedTicket.createdAt}</p>
                 </div>
                 <div className="glass-card !p-4">
                   <p className="form-label">SLA Deadline</p>
                   <div className="flex items-center gap-2 mt-2">
                     <div className={`w-2 h-2 rounded-full ${selectedTicket.overdue ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
-                    <p className={`text-sm font-semibold ${selectedTicket.overdue ? 'text-red-400' : 'text-white'}`}>{selectedTicket.slaDeadline}</p>
+                    <p className={`text-sm font-semibold ${selectedTicket.overdue ? 'text-red-400' : ''}`} style={selectedTicket.overdue ? undefined : { color: 'var(--text-primary)' }}>{selectedTicket.slaDeadline}</p>
                   </div>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export default function Helpdesk() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Create New Ticket</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Create New Ticket</h2>
               <button className="btn btn-ghost !p-2" onClick={() => setShowModal(false)}><X size={18} /></button>
             </div>
             <div className="grid grid-cols-2 gap-4">

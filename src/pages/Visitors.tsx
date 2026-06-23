@@ -103,8 +103,8 @@ export default function Visitors() {
         ].map(s => (
           <div key={s.label} className={`stat-card ${s.cls}`}>
             <div className={`icon-box ${s.icls}`} style={{ marginBottom: '12px' }}>{s.icon}</div>
-            <p style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a' }}>{s.value}</p>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginTop: '4px' }}>{s.label}</p>
+            <p style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>{s.value}</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -114,7 +114,7 @@ export default function Visitors() {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="search-box" style={{ flex: 1, minWidth: '200px' }}>
             <Search size={15} style={{ color: '#94a3b8' }} />
-            <input placeholder="Search visitor or company..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: '#0f172a', width: '100%' }} />
+            <input placeholder="Search visitor or company..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: 'var(--text-primary)', width: '100%' }} />
           </div>
           <div className="tab-bar">
             {(['All', 'Checked In', 'Pre-Registered'] as const).map(t => (
@@ -140,18 +140,18 @@ export default function Visitors() {
                 <tr><td colSpan={8} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No visitors found</td></tr>
               ) : filtered.map(v => (
                 <tr key={v.id}>
-                  <td><span style={{ fontFamily: 'monospace', fontSize: '12px', background: '#dbeafe', color: '#1d4ed8', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>{v.badge}</span></td>
+                  <td><span className="badge badge-blue" style={{ fontFamily: 'monospace', fontWeight: 700 }}>{v.badge}</span></td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div className="avatar">{v.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
                       <div>
-                        <p style={{ fontWeight: 600, color: '#0f172a', fontSize: '13px' }}>{v.name}</p>
+                        <p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>{v.name}</p>
                         <p style={{ fontSize: '11px', color: '#64748b' }}>{v.company}</p>
                       </div>
                     </div>
                   </td>
                   <td><span className={`badge ${purposeColors[v.purpose] || 'badge-gray'}`}>{v.purpose}</span></td>
-                  <td><p style={{ fontWeight: 600, fontSize: '13px', color: '#0f172a' }}>{v.hostEmployee}</p><p style={{ fontSize: '11px', color: '#64748b' }}>{v.hostDept}</p></td>
+                  <td><p style={{ fontWeight: 600, fontSize: '13px', color: 'var(--text-primary)' }}>{v.hostEmployee}</p><p style={{ fontSize: '11px', color: '#64748b' }}>{v.hostDept}</p></td>
                   <td style={{ color: v.checkIn ? '#059669' : '#94a3b8', fontWeight: 600 }}>{v.checkIn || '—'}</td>
                   <td style={{ color: v.checkOut ? '#475569' : '#94a3b8', fontWeight: 600 }}>{v.checkOut || '—'}</td>
                   <td><span className={`badge ${statusBadge[v.status]}`}>{v.status}</span></td>
@@ -177,8 +177,8 @@ export default function Visitors() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box" style={{ width: '500px', padding: '28px' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>Register Visitor</h2>
-              <button onClick={() => setShowModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={18} /></button>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Register Visitor</h2>
+              <button onClick={() => setShowModal(false)} className="btn btn-ghost !p-1.5"><X size={18} /></button>
             </div>
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>

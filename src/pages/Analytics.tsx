@@ -80,7 +80,7 @@ const DarkTooltip = ({ active, payload, label }: any) => {
     <div style={{ background: 'rgba(13,20,37,0.97)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '10px 14px', fontSize: 12 }}>
       {label && <p style={{ color: '#94a3b8', marginBottom: 6 }}>{label}</p>}
       {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.color || '#f1f5f9', fontWeight: 600, marginBottom: 2 }}>
+        <p key={p.name} style={{ color: p.color || 'var(--text-primary)', fontWeight: 600, marginBottom: 2 }}>
           {p.name}: {typeof p.value === 'number' && p.value > 10000 ? `₹${(p.value / 100000).toFixed(2)}L` : p.value}
         </p>
       ))}
@@ -96,8 +96,8 @@ function KpiCard({ label, value, sub, icon: Icon, iconCls }: { label: string; va
     <div className="glass-card flex items-center gap-4">
       <div className={`icon-box ${iconCls} shrink-0`}><Icon size={20} /></div>
       <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-slate-300 text-sm font-semibold">{label}</p>
+        <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p>
+        <p className="text-slate-500 text-sm font-semibold">{label}</p>
         <p className="text-slate-500 text-xs">{sub}</p>
       </div>
     </div>
@@ -141,7 +141,7 @@ export default function Analytics() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '16px' }}>
             {/* Attendance Trend */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Attendance Trend</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Attendance Trend</h3>
               <p className="text-slate-500 text-xs mb-4">Monthly attendance breakdown (%) — Jan to Jun 2026</p>
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={ATTENDANCE_TREND}>
@@ -168,7 +168,7 @@ export default function Analytics() {
 
             {/* Dept Headcount */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Department Headcount</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Department Headcount</h3>
               <p className="text-slate-500 text-xs mb-4">Current employee distribution</p>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={DEPT_HEADCOUNT} layout="vertical" barSize={16}>
@@ -190,7 +190,7 @@ export default function Analytics() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '16px' }}>
             {/* Leave Distribution */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Leave Distribution</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Leave Distribution</h3>
               <p className="text-slate-500 text-xs mb-4">By leave type — YTD 2026</p>
               <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
@@ -212,7 +212,7 @@ export default function Analytics() {
 
             {/* Hiring Funnel */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Hiring Funnel</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Hiring Funnel</h3>
               <p className="text-slate-500 text-xs mb-4">Recruitment pipeline — 2026</p>
               <div className="space-y-3 mt-4">
                 {HIRING_FUNNEL.map((f, i) => {
@@ -221,8 +221,8 @@ export default function Analytics() {
                   return (
                     <div key={f.stage}>
                       <div className="flex justify-between mb-1">
-                        <span className="text-slate-300 text-xs">{f.stage}</span>
-                        <span className="text-white text-xs font-bold">{f.count}</span>
+                        <span className="text-xs" style={{ color: 'var(--text-primary)' }}>{f.stage}</span>
+                        <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{f.count}</span>
                       </div>
                       <div className="progress-bar">
                         <div className="progress-fill" style={{ width: `${pct}%`, background: colors[i] }} />
@@ -235,7 +235,7 @@ export default function Analytics() {
 
             {/* Payroll Cost */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Payroll Cost Trend</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Payroll Cost Trend</h3>
               <p className="text-slate-500 text-xs mb-4">Monthly total payroll (INR)</p>
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={PAYROLL_TREND}>
@@ -257,7 +257,7 @@ export default function Analytics() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '16px' }}>
             {/* Revenue vs Target */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Revenue vs Target</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Revenue vs Target</h3>
               <p className="text-slate-500 text-xs mb-4">Monthly performance (INR) — Jan to Jun 2026</p>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={REVENUE_TARGET} barSize={20}>
@@ -274,7 +274,7 @@ export default function Analytics() {
 
             {/* Lead Funnel */}
             <div className="glass-card">
-              <h3 className="text-white font-bold mb-1">Lead Conversion Funnel</h3>
+              <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Lead Conversion Funnel</h3>
               <p className="text-slate-500 text-xs mb-4">Pipeline conversion stages</p>
               <div className="space-y-3 mt-6">
                 {LEAD_FUNNEL.map((f, i) => {
@@ -282,9 +282,9 @@ export default function Analytics() {
                   return (
                     <div key={f.stage}>
                       <div className="flex justify-between mb-1">
-                        <span className="text-slate-300 text-xs">{f.stage}</span>
+                        <span className="text-xs" style={{ color: 'var(--text-primary)' }}>{f.stage}</span>
                         <div className="flex gap-2">
-                          <span className="text-white text-xs font-bold">{f.value}</span>
+                          <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{f.value}</span>
                           <span className="text-slate-500 text-xs">{pct}%</span>
                         </div>
                       </div>
@@ -301,7 +301,7 @@ export default function Analytics() {
           {/* Top Performers */}
           <div className="glass-card !p-0 overflow-hidden">
             <div className="p-5 border-b border-white/5">
-              <h3 className="text-white font-bold">Top Performers — H1 2026</h3>
+              <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>Top Performers — H1 2026</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="premium-table">
@@ -319,25 +319,25 @@ export default function Analytics() {
                   {TOP_PERFORMERS.map((p, i) => (
                     <tr key={p.name}>
                       <td>
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-yellow-500/20 text-yellow-400' : i === 1 ? 'bg-slate-400/20 text-slate-300' : 'bg-orange-500/20 text-orange-400'}`}>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-yellow-500/20 text-yellow-400' : i === 1 ? 'bg-slate-400/20 text-slate-500' : 'bg-orange-500/20 text-orange-400'}`}>
                           #{i + 1}
                         </div>
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
                           <div className="avatar">{p.name.split(' ').map(n => n[0]).join('')}</div>
-                          <span className="text-white font-semibold text-sm">{p.name}</span>
+                          <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{p.name}</span>
                         </div>
                       </td>
                       <td><span className="badge badge-blue">{p.dept}</span></td>
                       <td className="text-green-400 font-semibold">{p.revenue > 0 ? `₹${(p.revenue / 100000).toFixed(1)}L` : '—'}</td>
-                      <td className="text-white">{p.deals}</td>
+                      <td style={{ color: 'var(--text-primary)' }}>{p.deals}</td>
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="progress-bar w-20">
                             <div className="progress-fill" style={{ width: `${p.score}%`, background: 'linear-gradient(90deg,#3b82f6,#8b5cf6)' }} />
                           </div>
-                          <span className="text-white font-bold text-sm">{p.score}%</span>
+                          <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{p.score}%</span>
                         </div>
                       </td>
                     </tr>
@@ -361,15 +361,15 @@ export default function Analytics() {
             ].map((s, i) => (
               <div key={s.label} className={`glass-card fade-up stagger-${i + 1}`}>
                 <div className={`icon-box ${s.iconCls} mb-3`}><s.icon size={20} /></div>
-                <p className="text-2xl font-bold text-white">{s.value}</p>
-                <p className="text-slate-300 text-sm font-semibold mt-1">{s.label}</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
+                <p className="text-slate-500 text-sm font-semibold mt-1">{s.label}</p>
                 <p className="text-slate-500 text-xs">{s.sub}</p>
               </div>
             ))}
           </div>
 
           <div className="glass-card">
-            <h3 className="text-white font-bold mb-1">Revenue vs Payroll Cost Trend</h3>
+            <h3 className="font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Revenue vs Payroll Cost Trend</h3>
             <p className="text-slate-500 text-xs mb-4">Monthly comparison (INR) — Jan to Jun 2026</p>
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={REVENUE_TARGET.map((r, i) => ({ ...r, payroll: PAYROLL_TREND[i]?.amount || 0 }))}>
@@ -391,7 +391,7 @@ export default function Analytics() {
       {tab === 'custom' && (
         <div className="glass-card py-20 text-center">
           <BarChart2 size={48} className="mx-auto text-slate-600 mb-4" />
-          <h3 className="text-white font-bold text-lg mb-2">Custom Analytics Builder</h3>
+          <h3 className="font-bold text-lg mb-2" style={{ color: 'var(--text-primary)' }}>Custom Analytics Builder</h3>
           <p className="text-slate-500 text-sm">Drag-and-drop report builder coming soon. Configure custom KPIs, date ranges, and chart types.</p>
           <button className="btn btn-primary mt-6">Request Access</button>
         </div>

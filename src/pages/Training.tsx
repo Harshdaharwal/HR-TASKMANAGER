@@ -92,8 +92,8 @@ export default function Training() {
         ].map(s => (
           <div key={s.label} className={`stat-card ${s.cls}`}>
             <div className={`icon-box ${s.icls}`} style={{ marginBottom: '12px' }}>{s.icon}</div>
-            <p style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a' }}>{s.value}</p>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginTop: '4px' }}>{s.label}</p>
+            <p style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-primary)' }}>{s.value}</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -103,7 +103,7 @@ export default function Training() {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="search-box" style={{ flex: 1, minWidth: '200px' }}>
             <Search size={15} style={{ color: '#94a3b8' }} />
-            <input placeholder="Search courses or instructor..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: '#0f172a', width: '100%' }} />
+            <input placeholder="Search courses or instructor..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: 'var(--text-primary)', width: '100%' }} />
           </div>
           <div className="tab-bar">
             {(['All', 'Active', 'Completed'] as const).map(t => (
@@ -135,7 +135,7 @@ export default function Training() {
             </div>
 
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>{course.title}</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{course.title}</h3>
               <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>{course.description}</p>
             </div>
 
@@ -148,7 +148,7 @@ export default function Training() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>
                 <span>Completion</span>
-                <span style={{ fontWeight: 600, color: '#0f172a' }}>{course.enrolled ? Math.round((course.completed / course.enrolled) * 100) : 0}%</span>
+                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{course.enrolled ? Math.round((course.completed / course.enrolled) * 100) : 0}%</span>
               </div>
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${course.enrolled ? Math.round((course.completed / course.enrolled) * 100) : 0}%`, background: 'linear-gradient(90deg,#2563eb,#10b981)' }} />
@@ -173,7 +173,7 @@ export default function Training() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box" style={{ width: '500px', padding: '28px' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>Add New Course</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>Add New Course</h2>
               <button onClick={() => setShowModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={18} /></button>
             </div>
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -378,6 +378,13 @@ select.input option { background: #fff; color: #0f172a; }
   transition: width 1s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* ========== LAYOUT GRIDS ========== */
+.stat-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
 /* ========== ANIMATIONS ========== */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
@@ -1068,6 +1075,9 @@ html.dark p, html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark s
 html.dark .page-title    { color: #e8eeff !important; }
 html.dark .page-subtitle { color: #4d6080 !important; }
 html.dark .form-label    { color: #4d6080 !important; }
+
+/* ── Chat bubbles ── */
+html.dark .chat-bubble-ai { background: rgba(13,19,42,0.95) !important; border-color: rgba(99,130,246,0.18) !important; color: #e8eeff !important; }
 
 /* ── Scrollbar ── */
 html.dark ::-webkit-scrollbar-track { background: #060b1e; }

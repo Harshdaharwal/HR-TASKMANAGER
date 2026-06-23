@@ -136,7 +136,7 @@ export default function Recruitment() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <p style={{ color: 'var(--slate-400)', fontSize: '13px', marginBottom: '8px' }}>{s.label}</p>
-                <p style={{ color: 'white', fontSize: '32px', fontWeight: 700 }}>{s.value}</p>
+                <p style={{ color: 'var(--text-primary)', fontSize: '32px', fontWeight: 700 }}>{s.value}</p>
               </div>
               <div className={`icon-box icon-${s.color}`}>{s.icon}</div>
             </div>
@@ -172,7 +172,7 @@ export default function Recruitment() {
                 <span className={`badge ${statusColor(job.status)}`}>{job.status}</span>
               </div>
               <div>
-                <h3 style={{ color: 'white', fontWeight: 600, marginBottom: '4px' }}>{job.title}</h3>
+                <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, marginBottom: '4px' }}>{job.title}</h3>
                 <p style={{ color: 'var(--slate-400)', fontSize: '13px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{job.description}</p>
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -187,7 +187,7 @@ export default function Recruitment() {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                   <span style={{ color: 'var(--slate-400)', fontSize: '12px' }}>Applicants</span>
-                  <span style={{ color: 'white', fontSize: '12px', fontWeight: 600 }}>{job.applicants}/{job.maxApplicants}</span>
+                  <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 600 }}>{job.applicants}/{job.maxApplicants}</span>
                 </div>
                 <div className="progress-bar">
                   <div className="progress-fill" style={{ width: `${Math.min(100, (job.applicants / job.maxApplicants) * 100)}%`, background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)' }} />
@@ -209,7 +209,7 @@ export default function Recruitment() {
             {STAGES.map(stage => (
               <div key={stage} className="kanban-col" style={{ width: '220px', minWidth: '220px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ color: 'white', fontWeight: 600, fontSize: '14px' }}>{stage}</h3>
+                  <h3 style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '14px' }}>{stage}</h3>
                   <span className={`badge ${stageColors[stage]}`}>{pipelineByStage[stage]?.length || 0}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -220,7 +220,7 @@ export default function Recruitment() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                         <div className="avatar" style={{ width: '30px', height: '30px', fontSize: '11px', flexShrink: 0 }}>{c.avatar}</div>
                         <div style={{ minWidth: 0 }}>
-                          <p style={{ color: 'white', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</p>
+                          <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</p>
                           <p style={{ color: 'var(--slate-400)', fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.appliedJob}</p>
                         </div>
                       </div>
@@ -249,10 +249,10 @@ export default function Recruitment() {
       {tab === 'candidates' && (
         <div className="glass-card fade-up">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <h2 style={{ color: 'white', fontWeight: 600 }}>All Candidates</h2>
+            <h2 style={{ color: 'var(--text-primary)', fontWeight: 600 }}>All Candidates</h2>
             <div className="search-box" style={{ maxWidth: '260px' }}>
               <Search size={16} style={{ color: 'var(--slate-400)' }} />
-              <input placeholder="Search candidates..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: 'white', width: '100%' }} />
+              <input placeholder="Search candidates..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', color: 'var(--text-primary)', width: '100%' }} />
             </div>
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -273,7 +273,7 @@ export default function Recruitment() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div className="avatar" style={{ width: '34px', height: '34px', fontSize: '12px' }}>{c.avatar}</div>
                         <div>
-                          <p style={{ color: 'white', fontWeight: 500 }}>{c.name}</p>
+                          <p style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{c.name}</p>
                           <p style={{ color: 'var(--slate-500)', fontSize: '12px' }}>{c.email}</p>
                         </div>
                       </div>
@@ -312,7 +312,7 @@ export default function Recruitment() {
         <div className="modal-overlay" onClick={() => setShowJobModal(false)}>
           <div className="modal-box w-full max-w-2xl p-6" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>Post New Job</h2>
+              <h2 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '18px' }}>Post New Job</h2>
               <button className="btn btn-ghost" style={{ padding: '6px' }} onClick={() => setShowJobModal(false)}><X size={18} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>

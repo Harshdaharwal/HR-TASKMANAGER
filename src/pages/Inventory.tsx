@@ -118,8 +118,8 @@ export default function Inventory() {
         ].map(s => (
           <div key={s.label} className={`stat-card ${s.cls}`}>
             <div className={`icon-box ${s.icls}`} style={{ marginBottom: '12px' }}>{s.icon}</div>
-            <p style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>{s.value}</p>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginTop: '4px' }}>{s.label}</p>
+            <p style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)' }}>{s.value}</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -129,7 +129,7 @@ export default function Inventory() {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="search-box" style={{ flex: 1, minWidth: '200px' }}>
             <Search size={15} style={{ color: '#94a3b8' }} />
-            <input placeholder="Search by name or SKU..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: '#0f172a', width: '100%' }} />
+            <input placeholder="Search by name or SKU..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: 'none', border: 'none', outline: 'none', fontSize: '13px', color: 'var(--text-primary)', width: '100%' }} />
           </div>
           <div className="tab-bar">
             {(['All', 'Low Stock', 'Out of Stock'] as const).map(t => (
@@ -155,12 +155,12 @@ export default function Inventory() {
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: '48px', color: '#94a3b8' }}>No items found</td></tr>
               ) : filtered.map(item => (
                 <tr key={item.id}>
-                  <td><p style={{ fontWeight: 600, color: '#0f172a', fontSize: '13px' }}>{item.name}</p><p style={{ fontSize: '11px', color: '#94a3b8' }}>{item.location}</p></td>
+                  <td><p style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '13px' }}>{item.name}</p><p style={{ fontSize: '11px', color: '#94a3b8' }}>{item.location}</p></td>
                   <td><span style={{ fontFamily: 'monospace', fontSize: '12px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{item.sku}</span></td>
                   <td><span className={`badge ${categoryColors[item.category] || 'badge-gray'}`}>{item.category}</span></td>
                   <td><span style={{ fontWeight: 700, color: item.quantity === 0 ? '#dc2626' : item.quantity < item.minStock ? '#d97706' : '#059669', fontSize: '15px' }}>{item.quantity}</span></td>
                   <td style={{ color: '#64748b' }}>{item.minStock}</td>
-                  <td style={{ fontWeight: 600, color: '#0f172a' }}>₹{item.unitPrice.toLocaleString('en-IN')}</td>
+                  <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>₹{item.unitPrice.toLocaleString('en-IN')}</td>
                   <td style={{ color: '#475569', fontSize: '12px' }}>{item.supplier}</td>
                   <td><span className={`badge ${statusBadge[item.status]}`}>{item.status}</span></td>
                   <td>
@@ -183,7 +183,7 @@ export default function Inventory() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box" style={{ width: '520px', padding: '28px' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>{editId ? 'Edit Item' : 'Add Inventory Item'}</h2>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)' }}>{editId ? 'Edit Item' : 'Add Inventory Item'}</h2>
               <button onClick={() => setShowModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#64748b' }}><X size={18} /></button>
             </div>
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
