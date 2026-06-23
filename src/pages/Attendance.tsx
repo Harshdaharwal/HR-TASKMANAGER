@@ -114,7 +114,7 @@ interface StoredFace {
   descriptor: Float32Array;
 }
 
-function FaceTab({ employees }: { employees: Employee[] }) {
+function FaceTab({ employees: propEmployees, currentUser }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string } }) {
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [phase, setPhase] = useState<'idle'|'loading'|'camera'|'detected'|'done'|'error'>('idle');
   const [msg, setMsg] = useState('');
@@ -123,6 +123,26 @@ function FaceTab({ employees }: { employees: Employee[] }) {
   const [storedFaces, setStoredFaces] = useState<StoredFace[]>([]);
   const [registeredList, setRegisteredList] = useState<Array<{ id?: string; employeeId: string; employeeName: string }>>([]);
   const [attendanceDone, setAttendanceDone] = useState(false);
+  const [localEmployees, setLocalEmployees] = useState<Employee[]>([]);
+
+  // Build employee list: prop employees + always include current user as fallback
+  const employees = (() => {
+    const list = localEmployees.length > 0 ? localEmployees : propEmployees;
+    const currentAsEmp: Employee = {
+      id: 'current-user',
+      employeeId: 'YOU',
+      name: currentUser.name,
+      email: currentUser.email,
+      department: 'HR' as import('../types').Department,
+      designation: currentUser.role,
+      status: 'Active',
+      salary: 0, joinDate: '', dob: '', gender: 'Male',
+      address: '', manager: '', skills: [], education: '',
+      avatar: currentUser.avatar, phone: '',
+    };
+    const already = list.find(e => e.name === currentUser.name || e.email === currentUser.email);
+    return already ? list : [currentAsEmp, ...list];
+  })();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -130,13 +150,16 @@ function FaceTab({ employees }: { employees: Employee[] }) {
   const loopRef   = useRef<number | null>(null);
   const matchCount = useRef<Record<string, number>>({});
 
-  // Load models + stored faces on first mount
+  // Load models + stored faces + employees on first mount
   useEffect(() => {
+    // Fetch employees if parent didn't provide any
+    if (propEmployees.length === 0) {
+      api.get<Employee[]>('/employees').then(d => { if (d && d.length) setLocalEmployees(d); }).catch(() => {});
+    }
     setPhase('loading');
     setMsg('Loading face recognition models (~6 MB, cached after first load)...');
     ensureFaceAPI().then(ok => {
       if (!ok) { setPhase('error'); setMsg('Failed to load face-api.js. Check your internet connection.'); return; }
-      // Load stored face records from API
       api.get<any[]>('/biometric').then(rows => {
         const faces: StoredFace[] = (rows ?? [])
           .filter(r => r.faceDescriptor)
@@ -148,7 +171,7 @@ function FaceTab({ employees }: { employees: Employee[] }) {
       }).catch(() => { setPhase('idle'); setMsg(''); });
     });
     return () => stopCamera();
-  }, []);
+  }, [propEmployees.length]);
 
   const stopCamera = () => {
     if (loopRef.current) { cancelAnimationFrame(loopRef.current); loopRef.current = null; }
@@ -381,7 +404,7 @@ function buf2b64url(buf: ArrayBuffer): string {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-function BiometricTab({ employees }: { employees: Employee[] }) {
+function BiometricTab({ employees: propEmployees, currentUser }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string } }) {
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -390,12 +413,36 @@ function BiometricTab({ employees }: { employees: Employee[] }) {
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [registered, setRegistered] = useState<BiometricRecord[]>([]);
   const [attendanceDone, setAttendanceDone] = useState(false);
+  const [localEmployees, setLocalEmployees] = useState<Employee[]>([]);
+
+  // Build dropdown list — always include the currently logged-in user
+  const employees = (() => {
+    const list = localEmployees.length > 0 ? localEmployees : propEmployees;
+    const currentAsEmp: Employee = {
+      id: 'current-user',
+      employeeId: 'YOU',
+      name: currentUser.name,
+      email: currentUser.email,
+      department: 'HR' as import('../types').Department,
+      designation: currentUser.role,
+      status: 'Active',
+      salary: 0, joinDate: '', dob: '', gender: 'Male',
+      address: '', manager: '', skills: [], education: '',
+      avatar: currentUser.avatar, phone: '',
+    };
+    const already = list.find(e => e.name === currentUser.name || e.email === currentUser.email);
+    return already ? list : [currentAsEmp, ...list];
+  })();
 
   const isSupported = typeof PublicKeyCredential !== 'undefined';
 
   useEffect(() => {
+    // Fetch employees if not passed from parent
+    if (propEmployees.length === 0) {
+      api.get<Employee[]>('/employees').then(d => { if (d && d.length) setLocalEmployees(d); }).catch(() => {});
+    }
     api.get<BiometricRecord[]>('/biometric').then(d => setRegistered(d ?? [])).catch(() => {});
-  }, []);
+  }, [propEmployees.length]);
 
   const resetState = () => {
     setDetected(null); setMsg(''); setScanStatus('idle'); setAttendanceDone(false);
@@ -404,19 +451,20 @@ function BiometricTab({ employees }: { employees: Employee[] }) {
   const handleRegister = async () => {
     const emp = employees.find(e => e.id === selectedEmpId);
     if (!emp) { setMsg('Please select an employee first'); setScanStatus('error'); return; }
-    if (registered.find(r => r.employeeId === emp.id)) {
-      setMsg(`${emp.name} already registered. Remove entry to re-register.`);
-      setScanStatus('error'); return;
-    }
+    // Allow re-registration (user can register multiple fingers)
     setScanning(true); setMsg(''); setScanStatus('idle');
     try {
       const cred = await navigator.credentials.create({
         publicKey: {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           rp: { name: 'NeXHR', id: window.location.hostname },
-          user: { id: new TextEncoder().encode(emp.id), name: emp.email || emp.name, displayName: emp.name },
+          user: { id: new TextEncoder().encode(emp.id.slice(0, 64)), name: emp.email || emp.name, displayName: emp.name },
           pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'required' },
+          authenticatorSelection: {
+            authenticatorAttachment: 'platform',
+            userVerification: 'preferred',   // 'required' blocks many Android devices
+            residentKey: 'preferred',          // 'required' fails if device storage is full
+          },
           timeout: 60000,
         },
       }) as PublicKeyCredential;
@@ -435,9 +483,11 @@ function BiometricTab({ employees }: { employees: Employee[] }) {
       setSelectedEmpId('');
     } catch (err: any) {
       const n = err?.name ?? '';
-      if (n === 'NotAllowedError') setMsg('Scan cancelled or permission denied.');
-      else if (n === 'InvalidStateError') setMsg('This fingerprint is already registered on this device.');
-      else setMsg(err?.message ?? 'Registration failed');
+      if (n === 'NotAllowedError') setMsg('Cancelled or fingerprint not verified. Try again.');
+      else if (n === 'InvalidStateError') setMsg('This exact fingerprint is already stored. Try a different finger.');
+      else if (n === 'NotSupportedError') setMsg('Fingerprint not supported on this device/browser. Use Chrome on Android.');
+      else if (n === 'SecurityError') setMsg('HTTPS required for fingerprint. Open via https:// or use localhost.');
+      else setMsg(`${n ? n + ': ' : ''}${err?.message ?? 'Registration failed'}`);
       setScanStatus('error');
     } finally { setScanning(false); }
   };
@@ -448,7 +498,8 @@ function BiometricTab({ employees }: { employees: Employee[] }) {
       const assertion = await navigator.credentials.get({
         publicKey: {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
-          userVerification: 'required',
+          userVerification: 'preferred',
+          allowCredentials: [], // empty = discoverable — phone will show fingerprint for any stored credential
           timeout: 60000,
         },
       }) as PublicKeyCredential;
@@ -640,7 +691,7 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function Attendance() {
-  const { attendanceRecords, setAttendanceRecords, employees } = useApp();
+  const { attendanceRecords, setAttendanceRecords, employees, currentUser } = useApp();
   const [mainTab, setMainTab] = useState<'records' | 'face' | 'biometric'>('records');
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [loading, setLoading] = useState(false);
@@ -750,10 +801,10 @@ export default function Attendance() {
       </div>
 
       {/* ── Face Tab ── */}
-      {mainTab === 'face' && <FaceTab employees={employees} />}
+      {mainTab === 'face' && <FaceTab employees={employees} currentUser={currentUser} />}
 
       {/* ── Fingerprint Tab ── */}
-      {mainTab === 'biometric' && <BiometricTab employees={employees} />}
+      {mainTab === 'biometric' && <BiometricTab employees={employees} currentUser={currentUser} />}
 
       {mainTab === 'records' && <>
       {/* ── KPI Stat Cards ── */}
