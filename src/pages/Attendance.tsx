@@ -75,6 +75,295 @@ function StatusEditor({ current, onSave, onCancel }: {
 }
 
 /* ═══════════════════════════════════════════════════════
+   FACE RECOGNITION — face-api.js CDN approach
+   ═══════════════════════════════════════════════════════ */
+
+// face-api.js CDN (loaded dynamically when FaceTab first mounts)
+const FACEAPI_CDN = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+const MODEL_URL   = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
+let faceapiReady  = false;
+
+async function ensureFaceAPI(): Promise<boolean> {
+  if (faceapiReady) return true;
+  return new Promise((resolve) => {
+    if ((window as any).faceapi) { faceapiReady = true; resolve(true); return; }
+    const s = document.createElement('script');
+    s.src = FACEAPI_CDN;
+    s.onload = async () => {
+      const fa = (window as any).faceapi;
+      try {
+        await Promise.all([
+          fa.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          fa.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+          fa.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        ]);
+        faceapiReady = true;
+        resolve(true);
+      } catch { resolve(false); }
+    };
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+
+interface StoredFace {
+  id?: string;
+  employeeId: string;
+  employeeName: string;
+  employeeDepartment: string;
+  descriptor: Float32Array;
+}
+
+function FaceTab({ employees }: { employees: Employee[] }) {
+  const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
+  const [phase, setPhase] = useState<'idle'|'loading'|'camera'|'detected'|'done'|'error'>('idle');
+  const [msg, setMsg] = useState('');
+  const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [detectedEmp, setDetectedEmp] = useState<{ name: string; dept: string; id: string } | null>(null);
+  const [storedFaces, setStoredFaces] = useState<StoredFace[]>([]);
+  const [registeredList, setRegisteredList] = useState<Array<{ id?: string; employeeId: string; employeeName: string }>>([]);
+  const [attendanceDone, setAttendanceDone] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const loopRef   = useRef<number | null>(null);
+  const matchCount = useRef<Record<string, number>>({});
+
+  // Load models + stored faces on first mount
+  useEffect(() => {
+    setPhase('loading');
+    setMsg('Loading face recognition models (~6 MB, cached after first load)...');
+    ensureFaceAPI().then(ok => {
+      if (!ok) { setPhase('error'); setMsg('Failed to load face-api.js. Check your internet connection.'); return; }
+      // Load stored face records from API
+      api.get<any[]>('/biometric').then(rows => {
+        const faces: StoredFace[] = (rows ?? [])
+          .filter(r => r.faceDescriptor)
+          .map(r => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName, employeeDepartment: r.employeeDepartment, descriptor: new Float32Array(JSON.parse(r.faceDescriptor)) }));
+        setStoredFaces(faces);
+        setRegisteredList((rows ?? []).filter(r => r.faceDescriptor).map(r => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName })));
+        setPhase('idle');
+        setMsg('');
+      }).catch(() => { setPhase('idle'); setMsg(''); });
+    });
+    return () => stopCamera();
+  }, []);
+
+  const stopCamera = () => {
+    if (loopRef.current) { cancelAnimationFrame(loopRef.current); loopRef.current = null; }
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+  };
+
+  const startCamera = async () => {
+    setPhase('camera'); setMsg(''); matchCount.current = {};
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+      streamRef.current = stream;
+      const vid = videoRef.current!;
+      vid.srcObject = stream;
+      await vid.play();
+      startLoop();
+    } catch {
+      setPhase('error'); setMsg('Camera access denied. Please allow camera in browser settings.');
+    }
+  };
+
+  const startLoop = () => {
+    const fa = (window as any).faceapi;
+    const THRESHOLD = 0.52;
+    const CONFIRM = 4;
+
+    const tick = async () => {
+      const vid = videoRef.current;
+      if (!vid || vid.readyState < 2) { loopRef.current = requestAnimationFrame(tick); return; }
+      try {
+        const det = await fa.detectSingleFace(vid, new fa.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+          .withFaceLandmarks(true).withFaceDescriptor();
+        const canvas = canvasRef.current;
+        if (canvas) {
+          canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+          const ctx = canvas.getContext('2d')!;
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          if (det) drawBox(ctx, det.detection.box);
+        }
+        if (det && mode === 'checkin' && storedFaces.length > 0) {
+          let best: { face: StoredFace; dist: number } | null = null;
+          for (const sf of storedFaces) {
+            const dist = fa.euclideanDistance(det.descriptor, sf.descriptor);
+            if (!best || dist < best.dist) best = { face: sf, dist };
+          }
+          if (best && best.dist < THRESHOLD) {
+            const key = best.face.employeeId;
+            matchCount.current[key] = (matchCount.current[key] || 0) + 1;
+            if (matchCount.current[key] >= CONFIRM) {
+              stopCamera();
+              setDetectedEmp({ name: best.face.employeeName, dept: best.face.employeeDepartment, id: best.face.employeeId });
+              setPhase('detected');
+              return;
+            }
+          } else {
+            matchCount.current = {};
+          }
+        }
+      } catch { /* ignore individual frame errors */ }
+      loopRef.current = requestAnimationFrame(tick);
+    };
+    loopRef.current = requestAnimationFrame(tick);
+  };
+
+  const drawBox = (ctx: CanvasRenderingContext2D, box: any) => {
+    const { x, y, width: w, height: h } = box;
+    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    const L = 18; ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 3;
+    [[x,y+L,x,y,x+L,y],[x+w-L,y,x+w,y,x+w,y+L],[x,y+h-L,x,y+h,x+L,y+h],[x+w-L,y+h,x+w,y+h,x+w,y+h-L]].forEach(([x1,y1,x2,y2,x3,y3]) => {
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.stroke();
+    });
+  };
+
+  const captureAndRegister = async () => {
+    const fa = (window as any).faceapi;
+    const emp = employees.find(e => e.id === selectedEmpId);
+    if (!emp) return;
+    setMsg('Detecting face...');
+    try {
+      const det = await fa.detectSingleFace(videoRef.current!, new fa.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+        .withFaceLandmarks(true).withFaceDescriptor();
+      if (!det) { setMsg('No face detected. Look directly at the camera.'); return; }
+      const descriptor = JSON.stringify(Array.from(det.descriptor));
+      const record = { employeeId: emp.id, employeeName: emp.name, employeeDepartment: emp.department, faceDescriptor: descriptor, type: 'face', registeredAt: new Date().toISOString() };
+      await api.post('/biometric', record);
+      setStoredFaces(prev => [...prev, { employeeId: emp.id, employeeName: emp.name, employeeDepartment: emp.department, descriptor: det.descriptor }]);
+      setRegisteredList(prev => [...prev, { employeeId: emp.id, employeeName: emp.name }]);
+      stopCamera(); setPhase('done'); setMsg(`${emp.name}'s face registered!`); setSelectedEmpId('');
+    } catch (err: any) {
+      setMsg(`Error: ${err.message}`); setPhase('error');
+    }
+  };
+
+  const confirmAttendance = async () => {
+    if (!detectedEmp) return;
+    try {
+      await api.post('/attendance', { employeeId: detectedEmp.id, employeeName: detectedEmp.name, date: todayISO(), checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }), status: 'Present', workHours: 0 });
+      setAttendanceDone(true);
+    } catch (err: any) { setMsg(`Failed: ${err.message}`); }
+  };
+
+  const resetAll = () => { setPhase('idle'); setMsg(''); setDetectedEmp(null); setAttendanceDone(false); stopCamera(); };
+
+  if (phase === 'loading') {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '60px 24px' }}>
+        <div style={{ width: 48, height: 48, border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+        <p style={{ color: '#64748b', fontSize: 14 }}>{msg}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="tab-bar" style={{ width: 'fit-content' }}>
+        {(['checkin','register'] as const).map(m => (
+          <button key={m} className={`tab-item ${mode === m ? 'active' : ''}`} onClick={() => { setMode(m); resetAll(); }}>
+            {m === 'checkin' ? '📷 Face Check-in' : '📝 Register Face'}
+          </button>
+        ))}
+      </div>
+
+      {/* Camera + canvas overlay */}
+      {phase === 'camera' && (
+        <div className="glass-card" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: '#000' }}>
+            <video ref={videoRef} style={{ width: '100%', display: 'block', borderRadius: 12 }} muted playsInline />
+            <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 12 }} />
+          </div>
+          {msg && <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center' }}>{msg}</p>}
+          {mode === 'register' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { stopCamera(); setPhase('idle'); }} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+              <button onClick={captureAndRegister} className="btn btn-primary" style={{ flex: 1 }}>Capture Face</button>
+            </div>
+          )}
+          {mode === 'checkin' && <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', fontWeight: 600 }}>🔍 Identifying... look at camera</p>}
+        </div>
+      )}
+
+      {/* CHECK-IN MODE — idle/detected/done */}
+      {mode === 'checkin' && phase !== 'camera' && (
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '36px 24px' }}>
+          {phase === 'detected' || attendanceDone ? (
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#fff', fontWeight: 800 }}>
+                {detectedEmp?.name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 22, margin: 0 }}>{detectedEmp?.name}</h2>
+                <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0' }}>{detectedEmp?.dept}</p>
+                {!attendanceDone && <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, marginTop: 8 }}>✓ Face Identified</p>}
+                {attendanceDone && <p style={{ color: '#10b981', fontSize: 14, fontWeight: 700, marginTop: 8 }}>✅ Attendance Marked!</p>}
+              </div>
+              {!attendanceDone ? (
+                <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                  <button onClick={resetAll} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+                  <button onClick={confirmAttendance} className="btn btn-primary" style={{ flex: 1 }}>Mark as Present</button>
+                </div>
+              ) : (
+                <button onClick={resetAll} className="btn btn-primary">Scan Next Person</button>
+              )}
+            </div>
+          ) : (
+            <>
+              <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 20, margin: 0 }}>Face ID Attendance</h2>
+              <p style={{ color: '#64748b', fontSize: 14, textAlign: 'center', margin: 0 }}>
+                {storedFaces.length === 0 ? 'No faces registered yet. Go to Register Face first.' : `${storedFaces.length} face(s) registered. Open camera to identify.`}
+              </p>
+              <button onClick={startCamera} disabled={storedFaces.length === 0} className="btn btn-primary" style={{ padding: '14px 36px', fontSize: 15, borderRadius: 14 }}>
+                📷 Open Camera
+              </button>
+              {phase === 'error' && <p style={{ color: '#ef4444', fontSize: 13 }}>{msg}</p>}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* REGISTER MODE */}
+      {mode === 'register' && phase !== 'camera' && (
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '32px 24px' }}>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 20, margin: 0 }}>Register Face</h2>
+          <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', margin: 0 }}>Select employee, open camera, then click Capture</p>
+          <select value={selectedEmpId} onChange={e => { setSelectedEmpId(e.target.value); setMsg(''); }} className="input" style={{ width: '100%' }}>
+            <option value="">— Select Employee —</option>
+            {employees.map(e => {
+              const reg = registeredList.some(r => r.employeeId === e.id);
+              return <option key={e.id} value={e.id}>{e.name} — {e.department}{reg ? ' ✓' : ''}</option>;
+            })}
+          </select>
+          {(phase === 'done' || phase === 'error') && msg && (
+            <div style={{ padding: '12px 20px', borderRadius: 12, fontSize: 14, fontWeight: 600, textAlign: 'center', width: '100%', background: phase === 'done' ? '#d1fae5' : '#fee2e2', color: phase === 'done' ? '#065f46' : '#991b1b' }}>{msg}</div>
+          )}
+          <button onClick={startCamera} disabled={!selectedEmpId} className="btn btn-primary" style={{ width: '100%', padding: '14px', fontSize: 15 }}>
+            📷 Open Camera
+          </button>
+          {registeredList.length > 0 && (
+            <div style={{ width: '100%' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>Registered Faces ({registeredList.length})</p>
+              {registeredList.map((r, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: 10, background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: 14 }}>{r.employeeName}</span>
+                  <span className="badge badge-green" style={{ fontSize: 11 }}>Face ID</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    BIOMETRIC ATTENDANCE — WebAuthn fingerprint feature
    ═══════════════════════════════════════════════════════ */
 
@@ -352,7 +641,7 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export default function Attendance() {
   const { attendanceRecords, setAttendanceRecords, employees } = useApp();
-  const [mainTab, setMainTab] = useState<'records' | 'biometric'>('records');
+  const [mainTab, setMainTab] = useState<'records' | 'face' | 'biometric'>('records');
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -446,16 +735,22 @@ export default function Attendance() {
         )}
       </div>
 
-      {/* ── Main Tabs: Records | Fingerprint ── */}
+      {/* ── Main Tabs: Records | Face | Fingerprint ── */}
       <div className="tab-bar" style={{ width: 'fit-content' }}>
         <button className={`tab-item ${mainTab === 'records' ? 'active' : ''}`} onClick={() => setMainTab('records')}>
-          📋 Attendance Records
+          📋 Attendance
+        </button>
+        <button className={`tab-item ${mainTab === 'face' ? 'active' : ''}`} onClick={() => setMainTab('face')}>
+          👤 Face ID
         </button>
         <button className={`tab-item ${mainTab === 'biometric' ? 'active' : ''}`} onClick={() => setMainTab('biometric')}
           style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Fingerprint size={15} style={{ display: 'inline' }} /> Fingerprint
+          <Fingerprint size={14} style={{ display: 'inline' }} /> Fingerprint
         </button>
       </div>
+
+      {/* ── Face Tab ── */}
+      {mainTab === 'face' && <FaceTab employees={employees} />}
 
       {/* ── Fingerprint Tab ── */}
       {mainTab === 'biometric' && <BiometricTab employees={employees} />}
@@ -654,6 +949,7 @@ export default function Attendance() {
           0%,100% { box-shadow: 0 0 0 0 rgba(139,92,246,0.25),0 0 0 0 rgba(139,92,246,0.1); }
           50% { box-shadow: 0 0 0 14px rgba(139,92,246,0.1),0 0 0 28px rgba(139,92,246,0.04); }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

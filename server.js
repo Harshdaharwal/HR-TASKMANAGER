@@ -32,51 +32,55 @@ async function getSheets() {
 }
 
 const SHEET_HEADERS = {
-  Employees: ['id','employeeId','name','email','phone','department','designation','salary','joinDate','status','avatar','gender','dob','address','manager','skills','education','emergencyContact'],
-  Attendance: ['id','employeeId','employeeName','date','checkIn','checkOut','status','workHours','location'],
-  Leave: ['id','employeeId','employeeName','department','leaveType','startDate','endDate','days','reason','status','appliedOn','approvedBy'],
-  Payroll: ['id','employeeId','employeeName','department','month','basicSalary','hra','allowances','pf','tax','bonus','netSalary','status','paidOn'],
-  Jobs: ['id','title','department','location','type','experience','salary','postedOn','closingDate','status','applicants','description','responsibilities'],
-  Candidates: ['id','name','email','phone','jobId','jobTitle','stage','appliedOn','experience','skills','rating','resume','notes'],
+  Employees:     ['id','employeeId','name','email','phone','department','designation','salary','joinDate','status','avatar','gender','dob','address','manager','skills','education','emergencyContact'],
+  Attendance:    ['id','employeeId','employeeName','date','checkIn','checkOut','status','workHours','location'],
+  Leave:         ['id','employeeId','employeeName','department','leaveType','startDate','endDate','days','reason','status','appliedOn','approvedBy'],
+  Payroll:       ['id','employeeId','employeeName','department','month','basicSalary','hra','allowances','pf','tax','bonus','netSalary','status','paidOn'],
+  Jobs:          ['id','title','department','location','type','experience','salary','postedOn','closingDate','status','applicants','description','responsibilities'],
+  Candidates:    ['id','name','email','phone','jobId','jobTitle','stage','appliedOn','experience','skills','rating','resume','notes'],
   Announcements: ['id','title','content','category','postedBy','postedOn','priority','expiresOn'],
-  Performance: ['id','employeeId','employeeName','department','reviewPeriod','rating','goals','strengths','improvements','reviewedBy','reviewDate','status'],
-  Tasks: ['id','title','description','assignedTo','assignedBy','department','priority','status','dueDate','createdOn','completedOn','tags'],
-  Assets: ['id','assetId','type','name','brand','serialNo','assignedTo','assignedDate','condition','status','purchaseDate','purchasePrice','warrantyExpiry'],
-  Expenses: ['id','employeeId','employeeName','category','amount','description','date','receiptUrl','status','approvedBy','paidOn'],
-  Tickets: ['id','ticketNo','employeeId','employeeName','category','subject','description','priority','status','assignedTo','createdOn','resolvedOn','slaHours'],
-  Leads: ['id','name','company','email','phone','source','status','value','assignedTo','createdOn','lastFollowUp','notes'],
-  Inventory: ['id','itemCode','name','category','quantity','unit','reorderLevel','vendor','purchasePrice','location','lastUpdated'],
-  Visitors: ['id','name','company','phone','email','hostEmployee','purpose','checkIn','checkOut','passNo','date'],
-  Training: ['id','title','description','category','instructor','duration','startDate','endDate','status','enrolledCount','maxCapacity','completionRate'],
+  Performance:   ['id','employeeId','employeeName','department','reviewPeriod','rating','goals','strengths','improvements','reviewedBy','reviewDate','status'],
+  Tasks:         ['id','title','description','assignedTo','assignedBy','department','priority','status','dueDate','createdOn','completedOn','tags'],
+  Assets:        ['id','assetId','type','name','brand','serialNo','assignedTo','assignedDate','condition','status','purchaseDate','purchasePrice','warrantyExpiry'],
+  Expenses:      ['id','employeeId','employeeName','category','amount','description','date','receiptUrl','status','approvedBy','paidOn'],
+  Tickets:       ['id','ticketNo','employeeId','employeeName','category','subject','description','priority','status','assignedTo','createdOn','resolvedOn','slaHours'],
+  Leads:         ['id','name','company','email','phone','source','status','value','assignedTo','createdOn','lastFollowUp','notes'],
+  Inventory:     ['id','itemCode','name','category','quantity','unit','reorderLevel','vendor','purchasePrice','location','lastUpdated'],
+  Visitors:      ['id','name','company','phone','email','hostEmployee','purpose','checkIn','checkOut','passNo','date'],
+  Training:      ['id','title','description','category','instructor','duration','startDate','endDate','status','enrolledCount','maxCapacity','completionRate'],
+  // Biometrics: stores fingerprint credentialId AND/OR face descriptor — one row per registration per employee per type
+  Biometrics:    ['id','employeeId','employeeName','employeeDepartment','credentialId','faceDescriptor','type','registeredAt'],
 };
 
-async function ensureSheet(sheets, sheetName) {
+async function ensureSheet(sheets, sheetName, dynamicHeaders) {
   try {
     const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
     const exists = res.data.sheets.some(s => s.properties.title === sheetName);
     if (!exists) {
       await sheets.spreadsheets.batchUpdate({
         spreadsheetId: SPREADSHEET_ID,
-        requestBody: {
-          requests: [{ addSheet: { properties: { title: sheetName } } }]
-        }
+        requestBody: { requests: [{ addSheet: { properties: { title: sheetName } } }] }
       });
     }
-    // Check if headers exist
-    const headerRes = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `${sheetName}!1:1`
-    });
-    if (!headerRes.data.values || headerRes.data.values.length === 0) {
-      await sheets.spreadsheets.values.update({
+    // Use known headers from constant, or dynamic headers passed in as fallback
+    const headerRow = SHEET_HEADERS[sheetName] || dynamicHeaders;
+    if (headerRow) {
+      const headerRes = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A1`,
-        valueInputOption: 'RAW',
-        requestBody: { values: [SHEET_HEADERS[sheetName]] }
+        range: `${sheetName}!1:1`
       });
+      if (!headerRes.data.values || headerRes.data.values.length === 0) {
+        await sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${sheetName}!A1`,
+          valueInputOption: 'RAW',
+          requestBody: { values: [headerRow] }
+        });
+      }
     }
   } catch (err) {
-    console.error(`Error ensuring sheet ${sheetName}:`, err.message);
+    console.error(`ensureSheet(${sheetName}) error:`, err.message);
+    throw err; // re-throw so callers know the sheet isn't ready
   }
 }
 
@@ -99,9 +103,15 @@ async function readSheet(sheetName) {
 
 async function appendRow(sheetName, data) {
   const sheets = await getSheets();
-  await ensureSheet(sheets, sheetName);
-  const headers = SHEET_HEADERS[sheetName];
-  const row = headers.map(h => data[h] !== undefined ? String(data[h]) : '');
+  // Use known header order, or derive from data keys for unknown sheets
+  const headers = SHEET_HEADERS[sheetName] || Object.keys(data);
+  await ensureSheet(sheets, sheetName, headers);
+  const row = headers.map(h => {
+    const v = data[h];
+    if (v === undefined || v === null) return '';
+    if (Array.isArray(v)) return v.join(',');
+    return String(v);
+  });
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
     range: `${sheetName}!A:A`,
@@ -121,7 +131,12 @@ async function updateRow(sheetName, id, data) {
   const rowIndex = rows.findIndex((r, i) => i > 0 && r[0] === id);
   if (rowIndex === -1) return null;
   const headers = rows[0];
-  const updatedRow = headers.map(h => data[h] !== undefined ? String(data[h]) : (rows[rowIndex][headers.indexOf(h)] || ''));
+  const updatedRow = headers.map((h, i) => {
+    const v = data[h];
+    if (v === undefined || v === null) return rows[rowIndex][i] || '';
+    if (Array.isArray(v)) return v.join(',');
+    return String(v);
+  });
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
     range: `${sheetName}!A${rowIndex + 1}`,
@@ -231,6 +246,18 @@ app.post('/api/biometric/verify', async (req, res) => {
     res.json({ success: true, data: found });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Health check — tests Google Sheets connectivity
+app.get('/api/health', async (req, res) => {
+  try {
+    const sheets = await getSheets();
+    const r = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+    const tabNames = r.data.sheets.map(s => s.properties.title);
+    res.json({ success: true, spreadsheetId: SPREADSHEET_ID, tabs: tabNames, serviceAccount: process.env.GOOGLE_CLIENT_EMAIL });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message, hint: `Share the spreadsheet with ${process.env.GOOGLE_CLIENT_EMAIL} as Editor` });
   }
 });
 
