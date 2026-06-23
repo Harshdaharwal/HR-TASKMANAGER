@@ -30,7 +30,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [apiOnline, setApiOnline] = useState(false);
 
-  const currentUser = { name: 'Neha Gupta', role: 'HR Manager', avatar: 'NG', email: 'neha@company.com' };
+  const currentUser = { name: 'Harsh Daharwal', role: 'HR Manager', avatar: 'HD', email: 'harsh@company.com' };
 
   // Try to load from API on mount
   useEffect(() => {

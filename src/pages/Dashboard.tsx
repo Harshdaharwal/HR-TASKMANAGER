@@ -122,7 +122,7 @@ export default function Dashboard() {
           <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:'16px', flexWrap:'wrap' }}>
             <div>
               <h1 style={{ fontSize:'clamp(18px,4vw,24px)', fontWeight:800, color:'#fff', lineHeight:1.2 }}>
-                Good morning, Neha 👋
+                Good morning, Harsh 👋
               </h1>
               <p style={{ fontSize:'12px', color:'rgba(255,255,255,0.65)', marginTop:'4px' }}>{today}</p>
             </div>

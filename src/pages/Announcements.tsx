@@ -29,7 +29,7 @@ function NewAnnouncementModal({ onClose, onSubmit }: {
     onSubmit({
       id: `AN${Date.now()}`,
       ...form,
-      postedBy: 'Neha Gupta',
+      postedBy: 'Harsh Daharwal',
       postedOn: new Date().toISOString().slice(0, 10),
     });
     onClose();

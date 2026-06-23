@@ -4,7 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { useLocation } from 'react-router';
 
 const pageTitles: Record<string, { title: string; subtitle: string }> = {
-  '/':             { title: 'Dashboard',     subtitle: "Welcome back, Neha" },
+  '/':             { title: 'Dashboard',     subtitle: "Welcome back, Harsh" },
   '/employees':    { title: 'Employees',     subtitle: 'Manage your workforce' },
   '/attendance':   { title: 'Attendance',    subtitle: 'Daily tracking' },
   '/leave':        { title: 'Leave',         subtitle: 'Requests & approvals' },
@@ -192,7 +192,7 @@ export default function Header() {
             display:'flex', alignItems:'center', justifyContent:'center',
             color:'#fff', fontSize:'12px', fontWeight:800,
           }}>
-            NG
+            HD
           </div>
           <div style={{ minWidth:0 }}>
             <p style={{ fontSize:'15px', fontWeight:700, color:'#0f172a', lineHeight:1.2, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>

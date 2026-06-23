@@ -654,7 +654,7 @@ export default function LeaveManagement() {
       setToast({ msg: 'API error — status updated locally.', type: 'error' });
     }
     setLeaveRequests(prev => prev.map(r =>
-      r.id === id ? { ...r, status, approvedBy: 'Neha Gupta' } : r
+      r.id === id ? { ...r, status, approvedBy: 'Harsh Daharwal' } : r
     ));
   };
 
