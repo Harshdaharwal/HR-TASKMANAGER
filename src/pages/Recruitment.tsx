@@ -155,7 +155,7 @@ export default function Recruitment() {
 
       {/* JOBS TAB */}
       {tab === 'jobs' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: '16px' }}>
           {loading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="glass-card" style={{ height: '220px', animation: 'pulse 1.5s infinite' }} />

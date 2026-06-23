@@ -472,9 +472,9 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
       </div>
 
       {/* calendar grid */}
-      <div className="glass-card" style={{ padding: 20 }}>
+      <div className="glass-card" style={{ padding: 20, overflow: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
         {/* day names header */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', marginBottom: 8, minWidth: 280 }}>
           {DAY_NAMES.map(d => (
             <div key={d} style={{
               textAlign: 'center', padding: '8px 0',
@@ -487,7 +487,7 @@ function CalendarTab({ leaveRequests }: { leaveRequests: LeaveRequest[] }) {
         </div>
 
         {/* day cells */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, minWidth: 280 }}>
           {cells.map((day, idx) => {
             if (!day) return <div key={`empty-${idx}`} />;
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;

@@ -223,7 +223,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── CHARTS: Attendance + Depts ── */}
-      <div className="fade-up stagger-4" style={{ display:'grid', gridTemplateColumns:'minmax(0,2fr) minmax(0,1fr)', gap:'16px' }}>
+      <div className="fade-up stagger-4" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'16px' }}>
         {/* Attendance Bar Chart */}
         <div className="glass-card">
           <div style={{ marginBottom:'14px' }}>
