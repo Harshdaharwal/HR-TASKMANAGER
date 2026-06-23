@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3001/api';
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) || 'http://localhost:3001/api';
 
 async function req<T>(method: string, path: string, body?: unknown): Promise<T> {
   let res: Response;

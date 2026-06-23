@@ -87,6 +87,7 @@ async function ensureFaceAPI(): Promise<boolean> {
   if (faceapiReady) return true;
   return new Promise((resolve) => {
     if ((window as any).faceapi) { faceapiReady = true; resolve(true); return; }
+    const timer = setTimeout(() => resolve(false), 35000);
     const s = document.createElement('script');
     s.src = FACEAPI_CDN;
     s.onload = async () => {
@@ -97,11 +98,12 @@ async function ensureFaceAPI(): Promise<boolean> {
           fa.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
           fa.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
+        clearTimeout(timer);
         faceapiReady = true;
         resolve(true);
-      } catch { resolve(false); }
+      } catch { clearTimeout(timer); resolve(false); }
     };
-    s.onerror = () => resolve(false);
+    s.onerror = () => { clearTimeout(timer); resolve(false); };
     document.head.appendChild(s);
   });
 }
@@ -150,28 +152,35 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
   const loopRef   = useRef<number | null>(null);
   const matchCount = useRef<Record<string, number>>({});
 
+  const loadModels = useCallback(async () => {
+    setPhase('loading');
+    setMsg('Loading face recognition models (~6 MB, cached after first load)...');
+    const ok = await ensureFaceAPI();
+    if (!ok) {
+      setPhase('error');
+      setMsg('Failed to load face recognition models. Check your internet connection and try again.');
+      return;
+    }
+    try {
+      const rows = await api.get<any[]>('/biometric');
+      const faces: StoredFace[] = (rows ?? [])
+        .filter((r: any) => r.faceDescriptor)
+        .map((r: any) => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName, employeeDepartment: r.employeeDepartment, descriptor: new Float32Array(JSON.parse(r.faceDescriptor)) }));
+      setStoredFaces(faces);
+      setRegisteredList((rows ?? []).filter((r: any) => r.faceDescriptor).map((r: any) => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName })));
+    } catch { /* backend offline – start with empty list */ }
+    setPhase('idle');
+    setMsg('');
+  }, []);
+
   // Load models + stored faces + employees on first mount
   useEffect(() => {
-    // Fetch employees if parent didn't provide any
     if (propEmployees.length === 0) {
       api.get<Employee[]>('/employees').then(d => { if (d && d.length) setLocalEmployees(d); }).catch(() => {});
     }
-    setPhase('loading');
-    setMsg('Loading face recognition models (~6 MB, cached after first load)...');
-    ensureFaceAPI().then(ok => {
-      if (!ok) { setPhase('error'); setMsg('Failed to load face-api.js. Check your internet connection.'); return; }
-      api.get<any[]>('/biometric').then(rows => {
-        const faces: StoredFace[] = (rows ?? [])
-          .filter(r => r.faceDescriptor)
-          .map(r => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName, employeeDepartment: r.employeeDepartment, descriptor: new Float32Array(JSON.parse(r.faceDescriptor)) }));
-        setStoredFaces(faces);
-        setRegisteredList((rows ?? []).filter(r => r.faceDescriptor).map(r => ({ id: r.id, employeeId: r.employeeId, employeeName: r.employeeName })));
-        setPhase('idle');
-        setMsg('');
-      }).catch(() => { setPhase('idle'); setMsg(''); });
-    });
+    loadModels();
     return () => stopCamera();
-  }, [propEmployees.length]);
+  }, [propEmployees.length, loadModels]);
 
   const stopCamera = () => {
     if (loopRef.current) { cancelAnimationFrame(loopRef.current); loopRef.current = null; }
@@ -281,6 +290,15 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
       <div className="glass-card" style={{ textAlign: 'center', padding: '60px 24px' }}>
         <div style={{ width: 48, height: 48, border: '4px solid #e2e8f0', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
         <p style={{ color: '#64748b', fontSize: 14 }}>{msg}</p>
+      </div>
+    );
+  }
+
+  if (phase === 'error' && msg.toLowerCase().includes('model')) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '60px 24px' }}>
+        <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>{msg}</p>
+        <button onClick={loadModels} className="btn btn-primary">Retry Loading Models</button>
       </div>
     );
   }
@@ -435,13 +453,16 @@ function BiometricTab({ employees: propEmployees, currentUser }: { employees: Em
   })();
 
   const isSupported = typeof PublicKeyCredential !== 'undefined';
+  const isSecureContext = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   useEffect(() => {
-    // Fetch employees if not passed from parent
     if (propEmployees.length === 0) {
       api.get<Employee[]>('/employees').then(d => { if (d && d.length) setLocalEmployees(d); }).catch(() => {});
     }
-    api.get<BiometricRecord[]>('/biometric').then(d => setRegistered(d ?? [])).catch(() => {});
+    // Only load fingerprint records (credentialId present), not face records
+    api.get<any[]>('/biometric')
+      .then(d => setRegistered((d ?? []).filter((r: any) => r.credentialId)))
+      .catch(() => {});
   }, [propEmployees.length]);
 
   const resetState = () => {
@@ -548,6 +569,19 @@ function BiometricTab({ employees: propEmployees, currentUser }: { employees: Em
         <Fingerprint size={48} style={{ color: '#94a3b8', marginBottom: 16 }} />
         <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.7 }}>
           Fingerprint authentication requires <strong>Chrome on Android</strong> with a fingerprint sensor.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isSecureContext) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <Fingerprint size={48} style={{ color: '#f59e0b', marginBottom: 16 }} />
+        <h3 style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 17, margin: '0 0 10px' }}>HTTPS Required</h3>
+        <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.7, maxWidth: 380, margin: '0 auto' }}>
+          Fingerprint scanning needs a <strong>secure connection</strong>.<br />
+          On desktop open <strong>localhost:5173</strong>. On phone, use an HTTPS URL or connect via a tunnel (e.g. ngrok).
         </p>
       </div>
     );
@@ -901,7 +935,7 @@ export default function Attendance() {
                       </td>
                     </tr>
                   )
-                  : filtered.map((record, idx) => {
+                  : filtered.map((record) => {
                     const cfg = STATUS_CONFIG[record.status];
                     const avatarColor = record.status === 'Present' ? '#10b981' : record.status === 'Absent' ? '#ef4444' : record.status === 'Work From Home' ? '#3b82f6' : '#f59e0b';
                     const location = record.status === 'Work From Home' ? 'Remote' : record.status === 'Present' ? 'Office' : record.status === 'Half Day' ? 'Office' : '—';
