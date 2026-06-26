@@ -1010,8 +1010,79 @@ select.input option { background: #fff; color: #0f172a; }
   .page-subtitle { font-size: 13px !important; }
 
   /* ── Recharts: reduce height on mobile via CSS var trick ── */
-  /* These heights are set inline in JSX, so we target the SVG container */
   .recharts-responsive-container svg { max-height: 200px; }
+
+  /* ══════════════════════════════════════════════════
+     ATTENDANCE / BIOMETRIC — mobile-first redesign
+     ══════════════════════════════════════════════════ */
+
+  /* Attendance main tab bar — full width, equal buttons */
+  .attendance-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .attendance-tabs .tab-item {
+    text-align: center !important;
+    font-size: 11px !important;
+    padding: 8px 4px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Biometric sub-tabs (Face Check-in / Register) */
+  .bio-sub-tabs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .bio-sub-tabs .tab-item {
+    text-align: center !important;
+    font-size: 12px !important;
+    padding: 8px 6px !important;
+  }
+
+  /* Fingerprint scan button — compact on mobile */
+  .fp-btn-lg {
+    width: 120px !important;
+    height: 120px !important;
+  }
+  .fp-btn-md {
+    width: 96px !important;
+    height: 96px !important;
+  }
+
+  /* Biometric card — reduce vertical padding */
+  .bio-card {
+    padding: 20px 16px !important;
+    gap: 16px !important;
+  }
+
+  /* Face avatar circle */
+  .face-avatar-lg { width: 60px !important; height: 60px !important; font-size: 22px !important; }
+
+  /* Attendance header row — stack on mobile */
+  .attendance-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .attendance-header h1 { font-size: 20px !important; }
+
+  /* Date picker + export row */
+  .attendance-actions { width: 100% !important; }
+  .attendance-actions input[type="date"] { width: 100% !important; }
+
+  /* KPI stat cards — 2 columns */
+  .stat-grid-auto { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .stat-card p:first-of-type { font-size: 24px !important; }
+
+  /* Registered list items */
+  .bio-list-item { padding: 10px 12px !important; }
+
+  /* Select dropdown */
+  .bio-select { font-size: 14px !important; padding: 10px 12px !important; }
 }
 
 /* ══════════════════════════════════════════════════════

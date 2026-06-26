@@ -90,13 +90,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ]);
         setEmployees(emps?.length ? emps : MOCK_EMPLOYEES);
         setLeaveRequests(leaves?.length ? leaves : MOCK_LEAVE);
-        setAttendanceRecords(att?.length ? att : MOCK_ATTENDANCE);
+        setAttendanceRecords(att?.length ? att : []); // no fake records — only real check-ins
         setApiOnline(true);
       } catch {
-        // API offline — use demo data so UI is not empty
         setEmployees(MOCK_EMPLOYEES);
         setLeaveRequests(MOCK_LEAVE);
-        setAttendanceRecords(MOCK_ATTENDANCE);
+        setAttendanceRecords([]); // API offline — start empty, real data comes from localStorage
         setApiOnline(false);
       }
     }

@@ -117,6 +117,7 @@ interface StoredFace {
 }
 
 function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [phase, setPhase] = useState<'idle'|'loading'|'camera'|'detected'|'done'|'error'>('idle');
   const [msg, setMsg] = useState('');
@@ -336,8 +337,8 @@ function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: 
   }
 
   return (
-    <div style={{ maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="tab-bar" style={{ width: 'fit-content' }}>
+    <div style={{ maxWidth: 520, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="tab-bar bio-sub-tabs">
         {(['checkin','register'] as const).map(m => (
           <button key={m} className={`tab-item ${mode === m ? 'active' : ''}`} onClick={() => { setMode(m); resetAll(); }}>
             {m === 'checkin' ? '📷 Face Check-in' : '📝 Register Face'}
@@ -365,10 +366,10 @@ function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: 
 
       {/* CHECK-IN MODE — idle/detected/done */}
       {mode === 'checkin' && phase !== 'camera' && (
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '36px 24px' }}>
+        <div className="glass-card bio-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '28px 20px' }}>
           {phase === 'detected' || attendanceDone ? (
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#fff', fontWeight: 800 }}>
+              <div className="face-avatar-lg" style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, color: '#fff', fontWeight: 800 }}>
                 {detectedEmp?.name.charAt(0).toUpperCase()}
               </div>
               <div style={{ textAlign: 'center' }}>
@@ -403,7 +404,7 @@ function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: 
 
       {/* REGISTER MODE */}
       {mode === 'register' && phase !== 'camera' && (
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '32px 24px' }}>
+        <div className="glass-card bio-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '24px 20px' }}>
           <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 20, margin: 0 }}>Register Face</h2>
           <p style={{ color: '#64748b', fontSize: 13, textAlign: 'center', margin: 0 }}>Select employee, open camera, then click Capture</p>
           <select value={selectedEmpId} onChange={e => { setSelectedEmpId(e.target.value); setMsg(''); }} className="input" style={{ width: '100%' }}>
@@ -495,6 +496,7 @@ function lsSaveAttendance(r: AttendanceRecord) {
 }
 
 function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -702,9 +704,9 @@ function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarke
   });
 
   return (
-    <div style={{ maxWidth: 500, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ maxWidth: 500, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Mode tabs */}
-      <div className="tab-bar" style={{ width: 'fit-content' }}>
+      <div className="tab-bar bio-sub-tabs">
         {(['checkin', 'register'] as const).map(m => (
           <button key={m} className={`tab-item ${mode === m ? 'active' : ''}`}
             onClick={() => { setMode(m); resetState(); }}>
@@ -715,20 +717,21 @@ function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarke
 
       {/* ── CHECK-IN MODE ── */}
       {mode === 'checkin' && (
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '40px 24px' }}>
+        <div className="glass-card bio-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 16 : 24, padding: isMobile ? '24px 16px' : '36px 24px' }}>
           {!detected || attendanceDone ? (
             <>
               <div style={{ textAlign: 'center' }}>
-                <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 22, margin: '0 0 6px' }}>
+                <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: isMobile ? 18 : 22, margin: '0 0 6px' }}>
                   {attendanceDone ? '✅ Attendance Marked!' : 'Fingerprint Check-in'}
                 </h2>
-                <p style={{ color: '#64748b', fontSize: 14, margin: 0 }}>
+                <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>
                   {attendanceDone ? msg : 'Place your finger on the sensor'}
                 </p>
               </div>
               <button onClick={attendanceDone ? resetState : handleCheckin} disabled={scanning}
-                style={{ width: 150, height: 150, background: attendanceDone ? 'linear-gradient(135deg,#d1fae5,#a7f3d0)' : scanning ? 'rgba(139,92,246,0.07)' : 'linear-gradient(135deg,#eff6ff,#f0fdf4)', ...fpBtnStyle(scanning, attendanceDone) }}>
-                <Fingerprint size={64} color={attendanceDone ? '#10b981' : scanning ? '#8b5cf6' : '#3b82f6'} strokeWidth={1.2} />
+                className="fp-btn-lg"
+                style={{ width: isMobile ? 120 : 150, height: isMobile ? 120 : 150, background: attendanceDone ? 'linear-gradient(135deg,#d1fae5,#a7f3d0)' : scanning ? 'rgba(139,92,246,0.07)' : 'linear-gradient(135deg,#eff6ff,#f0fdf4)', ...fpBtnStyle(scanning, attendanceDone) }}>
+                <Fingerprint size={isMobile ? 50 : 64} color={attendanceDone ? '#10b981' : scanning ? '#8b5cf6' : '#3b82f6'} strokeWidth={1.2} />
               </button>
               <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
                 {scanning ? '⏳ Scanning...' : attendanceDone ? 'Tap to scan next person' : 'Tap to scan fingerprint'}
@@ -765,23 +768,24 @@ function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarke
 
       {/* ── REGISTER MODE ── */}
       {mode === 'register' && (
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '32px 24px' }}>
+        <div className="glass-card bio-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 14 : 24, padding: isMobile ? '20px 16px' : '28px 24px' }}>
           <div style={{ textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: 20, margin: '0 0 6px' }}>Register Fingerprint</h2>
-            <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>Select employee then scan their finger on this device</p>
+            <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: isMobile ? 17 : 20, margin: '0 0 4px' }}>Register Fingerprint</h2>
+            <p style={{ color: '#64748b', fontSize: 12, margin: 0 }}>Select employee then scan their finger on this device</p>
           </div>
           <select value={selectedEmpId}
             onChange={e => { setSelectedEmpId(e.target.value); setMsg(''); setScanStatus('idle'); }}
-            className="input" style={{ width: '100%' }}>
+            className="input bio-select" style={{ width: '100%' }}>
             <option value="">— Select Employee —</option>
             {employees.map(e => {
               const isReg = registered.some(r => r.employeeId === e.id);
-              return <option key={e.id} value={e.id}>{e.name} — {e.department}{isReg ? ' ✓ Registered' : ''}</option>;
+              return <option key={e.id} value={e.id}>{e.name} — {e.department}{isReg ? ' ✓' : ''}</option>;
             })}
           </select>
           <button onClick={handleRegister} disabled={!selectedEmpId || scanning}
-            style={{ width: 120, height: 120, background: scanning ? 'rgba(139,92,246,0.08)' : selectedEmpId ? '#eff6ff' : '#f8fafc', ...fpBtnStyle(scanning) }}>
-            <Fingerprint size={52} color={scanning ? '#8b5cf6' : selectedEmpId ? '#3b82f6' : '#cbd5e1'} strokeWidth={1.2} />
+            className="fp-btn-md"
+            style={{ width: isMobile ? 96 : 120, height: isMobile ? 96 : 120, background: scanning ? 'rgba(139,92,246,0.08)' : selectedEmpId ? '#eff6ff' : '#f8fafc', ...fpBtnStyle(scanning) }}>
+            <Fingerprint size={isMobile ? 40 : 52} color={scanning ? '#8b5cf6' : selectedEmpId ? '#3b82f6' : '#cbd5e1'} strokeWidth={1.2} />
           </button>
           <p style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
             {scanning ? '⏳ Place finger on sensor...' : 'Tap to register fingerprint'}
@@ -943,16 +947,11 @@ export default function Attendance() {
       </div>
 
       {/* ── Main Tabs: Records | Face | Fingerprint ── */}
-      <div className="tab-bar" style={{ width: 'fit-content' }}>
-        <button className={`tab-item ${mainTab === 'records' ? 'active' : ''}`} onClick={() => setMainTab('records')}>
-          📋 Attendance
-        </button>
-        <button className={`tab-item ${mainTab === 'face' ? 'active' : ''}`} onClick={() => setMainTab('face')}>
-          👤 Face ID
-        </button>
-        <button className={`tab-item ${mainTab === 'biometric' ? 'active' : ''}`} onClick={() => setMainTab('biometric')}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Fingerprint size={14} style={{ display: 'inline' }} /> Fingerprint
+      <div className="tab-bar attendance-tabs">
+        <button className={`tab-item ${mainTab === 'records' ? 'active' : ''}`} onClick={() => setMainTab('records')}>📋 Records</button>
+        <button className={`tab-item ${mainTab === 'face' ? 'active' : ''}`} onClick={() => setMainTab('face')}>👤 Face ID</button>
+        <button className={`tab-item ${mainTab === 'biometric' ? 'active' : ''}`} onClick={() => setMainTab('biometric')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+          <Fingerprint size={13} /> Fingerprint
         </button>
       </div>
 
@@ -1050,10 +1049,10 @@ export default function Attendance() {
                 : filtered.length === 0
                   ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '60px 0' }}>
-                        <Clock size={40} style={{ margin: '0 auto 12px', display: 'block', color: '#cbd5e1' }} />
-                        <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>No attendance records for this date</p>
-                        <p style={{ color: '#cbd5e1', fontSize: 12, marginTop: 4 }}>Add records via the backend or Google Sheets</p>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '50px 20px' }}>
+                        <Clock size={36} style={{ margin: '0 auto 12px', display: 'block', color: '#cbd5e1' }} />
+                        <p style={{ color: '#94a3b8', fontSize: 14, fontWeight: 700, margin: '0 0 6px' }}>No attendance for {selectedDate}</p>
+                        <p style={{ color: '#cbd5e1', fontSize: 12, margin: 0 }}>Use Face ID or Fingerprint tab to mark attendance</p>
                       </td>
                     </tr>
                   )
