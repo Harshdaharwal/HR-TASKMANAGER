@@ -59,11 +59,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLeaveRequests(leaves ?? []);
         setAttendanceRecords(att ?? []);
         setApiOnline(true);
-      } catch {
+      } catch (err: unknown) {
         if (!isRetry) {
           // Vercel cold-start retry after 4s
           setTimeout(() => loadFromApi(true), 4000);
         } else {
+          console.error('[NeXHR] API offline:', err instanceof Error ? err.message : err);
           setApiOnline(false);
         }
       }

@@ -116,7 +116,7 @@ interface StoredFace {
   descriptor: Float32Array;
 }
 
-function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
+function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked, todayRecords }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void; todayRecords: AttendanceRecord[] }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [phase, setPhase] = useState<'idle'|'loading'|'camera'|'detected'|'done'|'error'>('idle');
@@ -299,20 +299,43 @@ function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: 
 
   const confirmAttendance = async () => {
     if (!detectedEmp) return;
+    const today = todayISO();
+    const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const existing = todayRecords.find(r => r.employeeId === detectedEmp.id && r.date === today);
+
+    if (existing?.checkIn && existing?.checkOut) {
+      setMsg(`${detectedEmp.name} already checked out today at ${existing.checkOut}`);
+      setAttendanceDone(true);
+      return;
+    }
+
+    if (existing?.checkIn && !existing?.checkOut) {
+      // CHECK OUT
+      const parseMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      const mins = parseMin(now) - parseMin(existing.checkIn);
+      const workHours = Math.max(0, Math.round(mins / 6) / 10);
+      const updated: AttendanceRecord = { ...existing, checkOut: now, workHours };
+      try { await api.put(`/attendance/${existing.id}`, updated); } catch { lsSaveAttendance(updated); }
+      onAttendanceMarked(updated);
+      setMsg(`Check-out recorded! Worked ${workHours}h`);
+      setAttendanceDone(true);
+      return;
+    }
+
+    // CHECK IN
     const record: AttendanceRecord = {
       id: String(Date.now()),
       employeeId: detectedEmp.id,
       employeeName: detectedEmp.name,
-      date: todayISO(),
-      checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      date: today,
+      checkIn: now,
       checkOut: '',
       status: 'Present',
       workHours: 0,
     };
-    try {
-      await api.post('/attendance', record);
-    } catch { lsSaveAttendance(record); }
+    try { await api.post('/attendance', record); } catch { lsSaveAttendance(record); }
     onAttendanceMarked(record);
+    setMsg(`Check-in recorded at ${now}!`);
     setAttendanceDone(true);
   };
 
@@ -378,12 +401,25 @@ function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: 
                 {!attendanceDone && <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, marginTop: 8 }}>✓ Face Identified</p>}
                 {attendanceDone && <p style={{ color: '#10b981', fontSize: 14, fontWeight: 700, marginTop: 8 }}>✅ Attendance Marked!</p>}
               </div>
-              {!attendanceDone ? (
-                <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-                  <button onClick={resetAll} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
-                  <button onClick={confirmAttendance} className="btn btn-primary" style={{ flex: 1 }}>Mark as Present</button>
-                </div>
-              ) : (
+              {!attendanceDone ? (() => {
+                const existingRec = detectedEmp ? todayRecords.find(r => r.employeeId === detectedEmp.id) : null;
+                const isCheckedIn = existingRec?.checkIn && !existingRec?.checkOut;
+                return (
+                  <div style={{ width: '100%' }}>
+                    {isCheckedIn && (
+                      <div style={{ textAlign: 'center', marginBottom: 10, padding: '6px 14px', borderRadius: 10, background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                        <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600 }}>Checked in at {existingRec!.checkIn} — tap to Check Out</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                      <button onClick={resetAll} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+                      <button onClick={confirmAttendance} className={`btn ${isCheckedIn ? 'btn-danger' : 'btn-primary'}`} style={{ flex: 1 }}>
+                        {isCheckedIn ? '🚪 Check Out' : '✅ Check In'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })() : (
                 <button onClick={resetAll} className="btn btn-primary">Scan Next Person</button>
               )}
             </div>
@@ -495,7 +531,7 @@ function lsSaveAttendance(r: AttendanceRecord) {
   } catch {}
 }
 
-function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
+function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarked, todayRecords }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void; todayRecords: AttendanceRecord[] }) {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 600;
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [scanning, setScanning] = useState(false);
@@ -646,22 +682,46 @@ function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarke
 
   const confirmAttendance = async () => {
     if (!detected) return;
+    const today = todayISO();
+    const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const existing = todayRecords.find(r => r.employeeId === detected.employeeId && r.date === today);
+
+    if (existing?.checkIn && existing?.checkOut) {
+      setMsg(`${detected.employeeName} already checked out today at ${existing.checkOut}`);
+      setScanStatus('error');
+      setAttendanceDone(true);
+      return;
+    }
+
+    if (existing?.checkIn && !existing?.checkOut) {
+      // CHECK OUT — update existing record
+      const parseMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+      const worked = parseMin(now) - parseMin(existing.checkIn);
+      const workHours = Math.max(0, Math.round(worked / 6) / 10);
+      const updated: AttendanceRecord = { ...existing, checkOut: now, workHours };
+      try { await api.put(`/attendance/${existing.id}`, updated); } catch { lsSaveAttendance(updated); }
+      onAttendanceMarked(updated);
+      setAttendanceDone(true);
+      setMsg(`Check-out done! ${detected.employeeName} worked ${workHours}h`);
+      setScanStatus('success');
+      return;
+    }
+
+    // CHECK IN — create new record
     const record: AttendanceRecord = {
       id: String(Date.now()),
       employeeId: detected.employeeId,
       employeeName: detected.employeeName,
-      date: todayISO(),
-      checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      date: today,
+      checkIn: now,
       checkOut: '',
       status: 'Present',
       workHours: 0,
     };
-    try {
-      await api.post('/attendance', record);
-    } catch { lsSaveAttendance(record); }
+    try { await api.post('/attendance', record); } catch { lsSaveAttendance(record); }
     onAttendanceMarked(record);
     setAttendanceDone(true);
-    setMsg(`Attendance recorded for ${detected.employeeName}!`);
+    setMsg(`Check-in recorded at ${now}!`);
     setScanStatus('success');
   };
 
@@ -757,10 +817,25 @@ function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarke
                 </div>
               </div>
               {msg && <div style={{ padding: '10px 18px', borderRadius: 10, fontSize: 14, background: scanStatus === 'error' ? '#fee2e2' : '#d1fae5', color: scanStatus === 'error' ? '#991b1b' : '#065f46', width: '100%', textAlign: 'center' }}>{msg}</div>}
-              <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-                <button onClick={resetState} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
-                <button onClick={confirmAttendance} className="btn btn-primary" style={{ flex: 1 }}>Mark as Present</button>
-              </div>
+              {(() => {
+                const existingRec = detected ? todayRecords.find(r => r.employeeId === detected.employeeId) : null;
+                const isCheckedIn = existingRec?.checkIn && !existingRec?.checkOut;
+                return (
+                  <div style={{ width: '100%' }}>
+                    {isCheckedIn && (
+                      <div style={{ textAlign: 'center', marginBottom: 10, padding: '6px 14px', borderRadius: 10, background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                        <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600 }}>Checked in at {existingRec!.checkIn} — scan again to Check Out</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                      <button onClick={resetState} className="btn btn-ghost" style={{ flex: 1 }}>Cancel</button>
+                      <button onClick={confirmAttendance} className={`btn ${isCheckedIn ? 'btn-danger' : 'btn-primary'}`} style={{ flex: 1 }}>
+                        {isCheckedIn ? '🚪 Check Out' : '✅ Check In'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
@@ -961,10 +1036,10 @@ export default function Attendance() {
       </div>
 
       {/* ── Face Tab ── */}
-      {mainTab === 'face' && <FaceTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} />}
+      {mainTab === 'face' && <FaceTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} todayRecords={attendanceRecords.filter(r => r.date === todayISO())} />}
 
       {/* ── Fingerprint Tab ── */}
-      {mainTab === 'biometric' && <BiometricTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} />}
+      {mainTab === 'biometric' && <BiometricTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} todayRecords={attendanceRecords.filter(r => r.date === todayISO())} />}
 
       {mainTab === 'records' && <>
       {/* ── KPI Stat Cards ── */}
