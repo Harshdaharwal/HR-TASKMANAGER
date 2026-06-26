@@ -81,7 +81,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Try to load from API on mount; fall back to mock data if offline
   useEffect(() => {
-    async function loadFromApi() {
+    async function loadFromApi(isRetry = false) {
       try {
         const [emps, leaves, att] = await Promise.all([
           api.get<Employee[]>('/employees'),
@@ -90,13 +90,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ]);
         setEmployees(emps?.length ? emps : MOCK_EMPLOYEES);
         setLeaveRequests(leaves?.length ? leaves : MOCK_LEAVE);
-        setAttendanceRecords(att?.length ? att : []); // no fake records — only real check-ins
+        setAttendanceRecords(att?.length ? att : []);
         setApiOnline(true);
       } catch {
-        setEmployees(MOCK_EMPLOYEES);
-        setLeaveRequests(MOCK_LEAVE);
-        setAttendanceRecords([]); // API offline — start empty, real data comes from localStorage
-        setApiOnline(false);
+        if (!isRetry) {
+          // Vercel cold-start can take a few seconds — retry once after 4s
+          setTimeout(() => loadFromApi(true), 4000);
+        } else {
+          setEmployees(MOCK_EMPLOYEES);
+          setLeaveRequests(MOCK_LEAVE);
+          setAttendanceRecords([]);
+          setApiOnline(false);
+        }
       }
     }
     loadFromApi();

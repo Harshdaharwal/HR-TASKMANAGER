@@ -590,11 +590,20 @@ export default function Employees() {
 
       {/* ── API status banner ── */}
       {!apiOnline && (
-        <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 12, padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
+        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 16 }}>⚠️</span>
           <div>
-            <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Backend server not running — data will NOT save to Google Sheets</p>
-            <p style={{ color: '#ef4444', fontSize: 12, margin: '3px 0 0' }}>Run <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: 4 }}>npm run server</code> in a terminal, then refresh this page</p>
+            {import.meta.env.PROD ? (
+              <>
+                <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Google Sheets connection unavailable</p>
+                <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>Data saves locally. Check Vercel environment variables if this persists.</p>
+              </>
+            ) : (
+              <>
+                <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Backend server not running — Google Sheets unavailable</p>
+                <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>Run <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: 4 }}>npm run server</code> in a terminal, then refresh</p>
+              </>
+            )}
           </div>
         </div>
       )}

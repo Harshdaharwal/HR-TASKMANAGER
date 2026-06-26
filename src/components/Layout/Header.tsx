@@ -112,10 +112,11 @@ export default function Header() {
           </div>
 
           {/* Google Sheets connectivity indicator */}
-          <div title={apiOnline ? 'Google Sheets connected — data saves to cloud' : 'Backend offline — run: npm run server'} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 11px', borderRadius:'8px', background: apiOnline ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border:`1px solid ${apiOnline ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, cursor:'default', flexShrink:0 }}>
+          <div title={apiOnline ? 'Google Sheets connected — data saves to cloud' : (import.meta.env.PROD ? 'Cloud backend unavailable — check Vercel env vars' : 'Run: npm run server')}
+            style={{ display:'flex', alignItems:'center', gap:'6px', padding:'5px 11px', borderRadius:'8px', background: apiOnline ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)', border:`1px solid ${apiOnline ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, cursor:'default', flexShrink:0 }}>
             <div style={{ width:7, height:7, borderRadius:'50%', background: apiOnline ? '#10b981' : '#ef4444', boxShadow: apiOnline ? '0 0 6px #10b981' : '0 0 6px #ef4444' }} />
             <span style={{ fontSize:11, fontWeight:700, color: apiOnline ? '#059669' : '#dc2626', letterSpacing:'0.02em' }}>
-              {apiOnline ? 'Sheets Connected' : 'Offline'}
+              {apiOnline ? 'Sheets Connected' : (import.meta.env.PROD ? 'Cloud Error' : 'Offline')}
             </span>
           </div>
 
