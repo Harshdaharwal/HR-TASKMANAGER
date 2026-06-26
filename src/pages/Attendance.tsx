@@ -913,13 +913,18 @@ export default function Attendance() {
 
   const now = new Date(selectedDate);
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const monthlyData: DayAttendanceStat[] = Array.from({ length: daysInMonth }, (_, i) => ({
-    day: i + 1,
-    present: Math.floor(Math.random() * 6) + 10,
-    absent:  Math.floor(Math.random() * 4) + 1,
-    wfh:     Math.floor(Math.random() * 4) + 2,
-    halfDay: Math.floor(Math.random() * 3),
-  }));
+  const monthPrefix = selectedDate.slice(0, 7); // "YYYY-MM"
+  const monthlyData: DayAttendanceStat[] = Array.from({ length: daysInMonth }, (_, i) => {
+    const dayStr = `${monthPrefix}-${String(i + 1).padStart(2, '0')}`;
+    const dayRecords = attendanceRecords.filter(r => r.date === dayStr);
+    return {
+      day: i + 1,
+      present: dayRecords.filter(r => r.status === 'Present').length,
+      absent:  dayRecords.filter(r => r.status === 'Absent').length,
+      wfh:     dayRecords.filter(r => r.status === 'Work From Home').length,
+      halfDay: dayRecords.filter(r => r.status === 'Half Day').length,
+    };
+  });
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
