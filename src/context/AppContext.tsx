@@ -17,6 +17,8 @@ interface AppContextType {
   sidebarOpen: boolean;
   setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
   apiOnline: boolean;
+  apiError: string;
+  retryApi: () => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
 }
@@ -32,6 +34,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [apiOnline, setApiOnline] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('darkMode');
@@ -47,30 +50,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const toggleDarkMode = () => setDarkMode(d => !d);
 
-  useEffect(() => {
-    async function loadFromApi(isRetry = false) {
-      try {
-        const [emps, leaves, att] = await Promise.all([
-          api.get<Employee[]>('/employees'),
-          api.get<LeaveRequest[]>('/leave'),
-          api.get<AttendanceRecord[]>('/attendance'),
-        ]);
-        setEmployees(emps ?? []);
-        setLeaveRequests(leaves ?? []);
-        setAttendanceRecords(att ?? []);
-        setApiOnline(true);
-      } catch (err: unknown) {
-        if (!isRetry) {
-          // Vercel cold-start retry after 4s
-          setTimeout(() => loadFromApi(true), 4000);
-        } else {
-          console.error('[NeXHR] API offline:', err instanceof Error ? err.message : err);
-          setApiOnline(false);
+  const loadFromApi = React.useCallback(async (isRetry = false) => {
+    try {
+      setApiError('');
+      const [emps, leaves, att] = await Promise.all([
+        api.get<Employee[]>('/employees'),
+        api.get<LeaveRequest[]>('/leave'),
+        api.get<AttendanceRecord[]>('/attendance'),
+      ]);
+      setEmployees(emps ?? []);
+      setLeaveRequests(leaves ?? []);
+      setAttendanceRecords(att ?? []);
+      setApiOnline(true);
+      setApiError('');
+    } catch (err: unknown) {
+      if (!isRetry) {
+        setTimeout(() => loadFromApi(true), 4000);
+      } else {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error('[NeXHR] API offline:', msg);
+        setApiOnline(false);
+        // Try health endpoint for specific Google Sheets error
+        try {
+          const BASE = (import.meta.env.VITE_API_URL as string | undefined)
+            || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
+          const h = await fetch(`${BASE}/health`);
+          const j = await h.json();
+          if (!j.success) setApiError(j.error || 'Google Sheets auth failed');
+          else { setApiOnline(true); setApiError(''); }
+        } catch {
+          setApiError(import.meta.env.PROD ? 'Serverless function unreachable' : 'Run: npm run server');
         }
       }
     }
-    loadFromApi();
   }, []);
+
+  const retryApi = React.useCallback(() => loadFromApi(false), [loadFromApi]);
+
+  useEffect(() => { loadFromApi(); }, [loadFromApi]);
 
   return (
     <AppContext.Provider value={{
@@ -79,7 +96,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       attendanceRecords, setAttendanceRecords,
       payrollRecords, setPayrollRecords,
       announcements, setAnnouncements,
-      currentUser, sidebarOpen, setSidebarOpen, apiOnline, darkMode, toggleDarkMode,
+      currentUser, sidebarOpen, setSidebarOpen, apiOnline, apiError, retryApi, darkMode, toggleDarkMode,
     }}>
       {children}
     </AppContext.Provider>

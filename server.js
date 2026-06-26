@@ -10,11 +10,17 @@ app.use(express.json());
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
+// Robust private key parsing: handles \n escaped, real newlines, and quoted values
+const rawKey = process.env.GOOGLE_PRIVATE_KEY ?? '';
+const parsedKey = rawKey
+  .replace(/^["']|["']$/g, '')   // strip surrounding quotes if pasted with them
+  .replace(/\\n/g, '\n');         // convert literal \n to real newlines
+
 const credentials = {
-  type: process.env.GOOGLE_TYPE,
+  type: process.env.GOOGLE_TYPE || 'service_account',
   project_id: process.env.GOOGLE_PROJECT_ID,
   private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-  private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  private_key: parsedKey,
   client_email: process.env.GOOGLE_CLIENT_EMAIL,
   client_id: process.env.GOOGLE_CLIENT_ID,
   auth_uri: 'https://accounts.google.com/o/oauth2/auth',

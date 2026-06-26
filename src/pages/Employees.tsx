@@ -476,7 +476,7 @@ function DeleteModal({ name, onClose, onConfirm }: { name: string; onClose: () =
 
 /* ─── main page ───────────────────────────────────────── */
 export default function Employees() {
-  const { employees, setEmployees, apiOnline } = useApp();
+  const { employees, setEmployees, apiOnline, apiError, retryApi } = useApp();
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [deptFilter, setDeptFilter] = useState<string>('All');
@@ -590,21 +590,26 @@ export default function Employees() {
 
       {/* ── API status banner ── */}
       {!apiOnline && (
-        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 16 }}>⚠️</span>
-          <div>
-            {import.meta.env.PROD ? (
-              <>
-                <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Google Sheets connection unavailable</p>
-                <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>Data saves locally. Check Vercel environment variables if this persists.</p>
-              </>
-            ) : (
-              <>
-                <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Backend server not running — Google Sheets unavailable</p>
-                <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>Run <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: 4 }}>npm run server</code> in a terminal, then refresh</p>
-              </>
-            )}
+        <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16 }}>⚠️</span>
+            <div>
+              {import.meta.env.PROD ? (
+                <>
+                  <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Google Sheets connection failed</p>
+                  <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>{apiError || 'Check Vercel environment variables'}</p>
+                </>
+              ) : (
+                <>
+                  <p style={{ color: '#fca5a5', fontWeight: 700, fontSize: 13, margin: 0 }}>Backend not running</p>
+                  <p style={{ color: '#ef4444', fontSize: 12, margin: '2px 0 0' }}>Run <code style={{ background: 'rgba(0,0,0,0.3)', padding: '1px 5px', borderRadius: 4 }}>npm run server</code></p>
+                </>
+              )}
+            </div>
           </div>
+          {import.meta.env.PROD && (
+            <button onClick={retryApi} className="btn btn-ghost" style={{ fontSize: 12, padding: '4px 12px', flexShrink: 0 }}>Retry</button>
+          )}
         </div>
       )}
 
