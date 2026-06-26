@@ -116,7 +116,7 @@ interface StoredFace {
   descriptor: Float32Array;
 }
 
-function FaceTab({ employees: propEmployees, currentUser }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string } }) {
+function FaceTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [phase, setPhase] = useState<'idle'|'loading'|'camera'|'detected'|'done'|'error'>('idle');
   const [msg, setMsg] = useState('');
@@ -298,9 +298,20 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
 
   const confirmAttendance = async () => {
     if (!detectedEmp) return;
+    const record: AttendanceRecord = {
+      id: String(Date.now()),
+      employeeId: detectedEmp.id,
+      employeeName: detectedEmp.name,
+      date: todayISO(),
+      checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      checkOut: '',
+      status: 'Present',
+      workHours: 0,
+    };
     try {
-      await api.post('/attendance', { employeeId: detectedEmp.id, employeeName: detectedEmp.name, date: todayISO(), checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }), status: 'Present', workHours: 0 });
-    } catch { /* API offline — still confirm locally */ }
+      await api.post('/attendance', record);
+    } catch { lsSaveAttendance(record); }
+    onAttendanceMarked(record);
     setAttendanceDone(true);
   };
 
@@ -450,8 +461,9 @@ function b64url2buf(b64url: string): Uint8Array {
 }
 
 // ── localStorage fallback (used when backend is unreachable, e.g. Vercel deploy) ──
-const LS_FACES = 'nexhr_faces';
-const LS_BIO   = 'nexhr_biometric';
+const LS_FACES      = 'nexhr_faces';
+const LS_BIO        = 'nexhr_biometric';
+const LS_ATTENDANCE = 'nexhr_attendance';
 
 function lsLoadFaces(): Array<Omit<StoredFace, 'descriptor'> & { descriptor: number[] }> {
   try { const d = localStorage.getItem(LS_FACES); return d ? JSON.parse(d) : []; } catch { return []; }
@@ -471,8 +483,18 @@ function lsSaveBio(r: BiometricRecord) {
     localStorage.setItem(LS_BIO, JSON.stringify([...prev, r]));
   } catch {}
 }
+function lsLoadAttendance(date: string): AttendanceRecord[] {
+  try { const d = localStorage.getItem(LS_ATTENDANCE); const all: AttendanceRecord[] = d ? JSON.parse(d) : []; return all.filter(r => r.date === date); } catch { return []; }
+}
+function lsSaveAttendance(r: AttendanceRecord) {
+  try {
+    const all: AttendanceRecord[] = (() => { try { return JSON.parse(localStorage.getItem(LS_ATTENDANCE) || '[]'); } catch { return []; } })();
+    const filtered = all.filter(x => !(x.employeeId === r.employeeId && x.date === r.date));
+    localStorage.setItem(LS_ATTENDANCE, JSON.stringify([r, ...filtered]));
+  } catch {}
+}
 
-function BiometricTab({ employees: propEmployees, currentUser }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string } }) {
+function BiometricTab({ employees: propEmployees, currentUser, onAttendanceMarked }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string }; onAttendanceMarked: (r: AttendanceRecord) => void }) {
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [scanning, setScanning] = useState(false);
   const [scanStatus, setScanStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -622,16 +644,20 @@ function BiometricTab({ employees: propEmployees, currentUser }: { employees: Em
 
   const confirmAttendance = async () => {
     if (!detected) return;
+    const record: AttendanceRecord = {
+      id: String(Date.now()),
+      employeeId: detected.employeeId,
+      employeeName: detected.employeeName,
+      date: todayISO(),
+      checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      checkOut: '',
+      status: 'Present',
+      workHours: 0,
+    };
     try {
-      await api.post('/attendance', {
-        employeeId: detected.employeeId,
-        employeeName: detected.employeeName,
-        date: todayISO(),
-        checkIn: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        status: 'Present',
-        workHours: 0,
-      });
-    } catch { /* API offline — still confirm locally */ }
+      await api.post('/attendance', record);
+    } catch { lsSaveAttendance(record); }
+    onAttendanceMarked(record);
     setAttendanceDone(true);
     setMsg(`Attendance recorded for ${detected.employeeName}!`);
     setScanStatus('success');
@@ -822,9 +848,25 @@ export default function Attendance() {
     setLoading(true);
     try {
       const data = await api.get<AttendanceRecord[]>(`/attendance?date=${date}`);
-      if (data && data.length) setAttendanceRecords(data);
-    } catch { /* use context data */ }
+      if (data && data.length) {
+        setAttendanceRecords(data);
+      } else {
+        const local = lsLoadAttendance(date);
+        if (local.length > 0) setAttendanceRecords(local);
+      }
+    } catch {
+      // API offline → prefer localStorage over mock data
+      const local = lsLoadAttendance(date);
+      if (local.length > 0) setAttendanceRecords(local);
+    }
     finally { setLoading(false); }
+  }, [setAttendanceRecords]);
+
+  const handleAttendanceMarked = useCallback((record: AttendanceRecord) => {
+    setAttendanceRecords(prev => {
+      const filtered = prev.filter(r => !(r.employeeId === record.employeeId && r.date === record.date));
+      return [record, ...filtered];
+    });
   }, [setAttendanceRecords]);
 
   useEffect(() => { fetchAttendance(selectedDate); }, [selectedDate, fetchAttendance]);
@@ -915,10 +957,10 @@ export default function Attendance() {
       </div>
 
       {/* ── Face Tab ── */}
-      {mainTab === 'face' && <FaceTab employees={employees} currentUser={currentUser} />}
+      {mainTab === 'face' && <FaceTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} />}
 
       {/* ── Fingerprint Tab ── */}
-      {mainTab === 'biometric' && <BiometricTab employees={employees} currentUser={currentUser} />}
+      {mainTab === 'biometric' && <BiometricTab employees={employees} currentUser={currentUser} onAttendanceMarked={handleAttendanceMarked} />}
 
       {mainTab === 'records' && <>
       {/* ── KPI Stat Cards ── */}

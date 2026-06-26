@@ -333,4 +333,9 @@ app.post('/api/seed', async (req, res) => {
   }
 });
 
-app.listen(3001, () => console.log('🚀 HR Backend running on http://localhost:3001'));
+// Run locally; on Vercel the function file imports and exports this app instead
+if (!process.env.VERCEL) {
+  app.listen(3001, () => console.log('🚀 HR Backend running on http://localhost:3001'));
+}
+
+export default app;
