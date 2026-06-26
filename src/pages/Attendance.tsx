@@ -204,18 +204,21 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
 
   const startLoop = () => {
     const fa = (window as any).faceapi;
-    const THRESHOLD = 0.52;
-    const CONFIRM = 4;
+    const THRESHOLD = 0.55;   // slightly lenient for real-world lighting
+    const CONFIRM = 8;         // total matches needed (not consecutive)
+    let framesSinceLastMatch = 0;
 
     const tick = async () => {
       const vid = videoRef.current;
       if (!vid || vid.readyState < 2) { loopRef.current = requestAnimationFrame(tick); return; }
       try {
-        const det = await fa.detectSingleFace(vid, new fa.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+        const det = await fa.detectSingleFace(vid, new fa.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 }))
           .withFaceLandmarks(true).withFaceDescriptor();
         const canvas = canvasRef.current;
         if (canvas) {
-          canvas.width = vid.videoWidth; canvas.height = vid.videoHeight;
+          // Only reset canvas dimensions when they actually change
+          if (canvas.width !== vid.videoWidth) canvas.width = vid.videoWidth;
+          if (canvas.height !== vid.videoHeight) canvas.height = vid.videoHeight;
           const ctx = canvas.getContext('2d')!;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           if (det) drawBox(ctx, det.detection.box);
@@ -227,7 +230,9 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
             if (!best || dist < best.dist) best = { face: sf, dist };
           }
           if (best && best.dist < THRESHOLD) {
+            framesSinceLastMatch = 0;
             const key = best.face.employeeId;
+            // Accumulate — don't reset on misses; single bad frame won't kill progress
             matchCount.current[key] = (matchCount.current[key] || 0) + 1;
             if (matchCount.current[key] >= CONFIRM) {
               stopCamera();
@@ -236,7 +241,12 @@ function FaceTab({ employees: propEmployees, currentUser }: { employees: Employe
               return;
             }
           } else {
-            matchCount.current = {};
+            framesSinceLastMatch++;
+            // Reset only after ~5 s of no match so stale counts don't linger
+            if (framesSinceLastMatch > 300) {
+              matchCount.current = {};
+              framesSinceLastMatch = 0;
+            }
           }
         }
       } catch { /* ignore individual frame errors */ }
@@ -422,6 +432,12 @@ function buf2b64url(buf: ArrayBuffer): string {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
+function b64url2buf(b64url: string): Uint8Array {
+  const b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = b64.padEnd(b64.length + (4 - (b64.length % 4)) % 4, '=');
+  return Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+}
+
 function BiometricTab({ employees: propEmployees, currentUser }: { employees: Employee[]; currentUser: { name: string; role: string; avatar: string; email: string } }) {
   const [mode, setMode] = useState<'checkin' | 'register'>('checkin');
   const [scanning, setScanning] = useState(false);
@@ -516,11 +532,27 @@ function BiometricTab({ employees: propEmployees, currentUser }: { employees: Em
   const handleCheckin = async () => {
     setScanning(true); setDetected(null); setMsg(''); setScanStatus('idle'); setAttendanceDone(false);
     try {
+      // Build explicit allowCredentials from registered list — much more reliable than empty array
+      const allowCredentials = registered
+        .filter(r => r.credentialId)
+        .map(r => {
+          try { return { type: 'public-key' as const, id: b64url2buf(r.credentialId) }; }
+          catch { return null; }
+        })
+        .filter((x): x is { type: 'public-key'; id: Uint8Array } => x !== null);
+
+      if (allowCredentials.length === 0) {
+        setMsg('No fingerprints registered yet. Please register first.');
+        setScanStatus('error');
+        setScanning(false);
+        return;
+      }
+
       const assertion = await navigator.credentials.get({
         publicKey: {
           challenge: crypto.getRandomValues(new Uint8Array(32)),
           userVerification: 'preferred',
-          allowCredentials: [], // empty = discoverable — phone will show fingerprint for any stored credential
+          allowCredentials,
           timeout: 60000,
         },
       }) as PublicKeyCredential;
